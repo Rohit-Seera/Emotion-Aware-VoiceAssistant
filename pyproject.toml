@@ -1,0 +1,176 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+
+[project]
+name = "emotion-aware-voice-assistant"
+version = "1.0.0"
+description = "Backend infrastructure for the Emotion Aware Voice Assistant Voice Companion."
+readme = "docs/README.md"
+requires-python = ">=3.11,<3.14"
+license = { text = "Proprietary" }
+authors = [
+    { name = "Emotion Aware Voice Assistant" },
+]
+
+dependencies = [
+    # Web framework
+    "fastapi>=0.115,<1.0",
+    "uvicorn[standard]>=0.34,<1.0",
+    # Configuration and validation
+    "pydantic>=2.11,<3.0",
+    "pydantic-settings>=2.8,<3.0",
+    "python-dotenv>=1.1,<2.0",
+    # Database
+    "sqlalchemy[asyncio]>=2.0,<2.2",
+    "asyncpg>=0.30,<1.0",
+    "alembic>=1.15,<2.0",
+    # Cache
+    "redis>=6.0,<8.0",
+    # Vector database
+    "qdrant-client>=1.14,<2.0",
+    # AI providers
+    "openai>=1.100,<3.0",
+    "anthropic>=0.70,<1.0",
+    "google-genai>=1.30,<2.0",
+    "groq>=0.30,<1.0",
+    # Runtime / orchestration
+    "langgraph>=0.6,<2.0",
+    "langchain-core>=0.3,<2.0",
+    # Security
+    "PyJWT>=2.10,<3.0",
+    "passlib[bcrypt]>=1.7,<2.0",
+    "argon2-cffi>=25,<26",
+    "elevenlabs>=2.63.0",
+    "sentence-transformers>=6.0.0",
+    "voyageai>=0.5.0",
+    # Optional/local acoustic speech emotion recognition.
+    "transformers>=5.0,<6.0",
+    "torch>=2.2,<3.0",
+    "numpy>=1.26,<3.0",
+]
+
+
+[project.optional-dependencies]
+
+test = [
+    "pytest>=8.4,<10.0",
+    "pytest-asyncio>=1.0,<2.0",
+    "httpx>=0.28,<1.0",
+    "faker>=37,<38",
+    "respx>=0.22,<1.0",
+]
+
+benchmark = [
+    "matplotlib>=3.8,<4.0",
+]
+
+dev = [
+    "ruff>=0.12,<1.0",
+    "mypy>=1.16,<2.0",
+    "pre-commit>=4.0,<5.0",
+    "pytest>=8.4,<10.0",
+    "pytest-asyncio>=1.0,<2.0",
+    "httpx>=0.28,<1.0",
+    "faker>=37,<38",
+    "respx>=0.22,<1.0",
+]
+
+
+[project.urls]
+Homepage = "http://localhost:8000/api/v1/demo"
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+python_files = [
+    "test_*.py",
+    "*_test.py",
+]
+
+python_classes = [
+    "Test*",
+]
+
+python_functions = [
+    "test_*",
+]
+
+asyncio_mode = "auto"
+
+addopts = [
+    "-ra",
+    "--import-mode=importlib",
+    "--strict-config",
+    "--strict-markers",
+]
+
+markers = [
+    "unit: fast isolated tests with no external services",
+    "integration: tests involving multiple application components",
+    "e2e: end-to-end application tests",
+    "provider: AI provider tests",
+    "database: database-dependent tests",
+    "redis: Redis-dependent tests",
+    "qdrant: Qdrant-dependent tests",
+]
+
+
+[tool.ruff]
+target-version = "py311"
+line-length = 79
+
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    "build",
+    "dist",
+]
+
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "UP",
+    "B",
+    "SIM",
+]
+
+ignore = [
+    "E501",
+]
+
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+
+[tool.mypy]
+python_version = "3.11"
+
+strict = true
+
+warn_unused_configs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+check_untyped_defs = true
+
+exclude = [
+    "^tests/",
+]

@@ -1,0 +1,23 @@
+Emotion Aware Voice Assistant - RUN THIS
+=====================
+
+1. Open PowerShell in this folder.
+2. Run:
+
+   uv sync --extra dev
+   uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
+
+3. Open ANY of these in the browser:
+
+   http://127.0.0.1:8000/
+   http://127.0.0.1:8000/demo
+   http://127.0.0.1:8000/api/v1/demo
+
+4. If you see a 404, open:
+
+   http://127.0.0.1:8000/status
+
+It should show that the server is running and list the demo URL.
+
+Do not run uvicorn from a different folder. The command must be run from
+the folder containing pyproject.toml and the app/ directory.

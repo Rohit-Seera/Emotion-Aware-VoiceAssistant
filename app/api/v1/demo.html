@@ -1,0 +1,1134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#020204">
+<meta name="assistant-ui-version" content="particle-emotional-ui-v19">
+<title>Voice Interface</title>
+<style>
+:root{color-scheme:dark;--bg:#020204;--text:#f6f7ff;--muted:#85899b;--line:rgba(224,233,255,.10);--glass:rgba(9,11,19,.74);--cyan:#55fff0;--pink:#ff4ccf;--violet:#8b67ff;--good:#73f7c7;--warn:#ffd27d;--danger:#ff779c}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
+body{min-height:100svh;isolation:isolate;background:#020204;letter-spacing:.01em}
+button,textarea,input{font:inherit}button{color:inherit;cursor:pointer}button:focus-visible,textarea:focus-visible{outline:2px solid rgba(82,255,239,.85);outline-offset:3px}
+#liquidCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;opacity:.98}
+.wrap{position:relative;width:100%;height:100svh;min-height:520px;overflow:hidden}
+.top{position:fixed;z-index:30;top:22px;left:26px;right:26px;display:flex;align-items:center;justify-content:space-between;gap:16px;pointer-events:none}
+.eyebrow{display:flex;align-items:center;gap:11px;font-size:10px;font-weight:650;letter-spacing:.23em;text-transform:uppercase;color:#d3d7e6;text-shadow:0 0 18px rgba(255,255,255,.2)}
+.signal-mark{width:8px;height:8px;border-radius:50%;background:#f7ffff;box-shadow:0 0 12px rgba(143,255,248,.9),0 0 30px rgba(89,200,255,.65);animation:signalBreath 2.6s ease-in-out infinite}
+.status-pill{display:flex;align-items:center;gap:9px;max-width:min(45vw,430px);border:1px solid rgba(233,241,255,.12);border-radius:999px;padding:9px 13px;background:rgba(6,8,14,.5);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);color:#aeb4c6;font-size:11px;letter-spacing:.025em;pointer-events:auto}
+.status-pill #status{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status-dot{width:6px;height:6px;border-radius:50%;flex:0 0 6px;background:#9aa2b6;box-shadow:0 0 10px currentColor}
+.status-dot.is-speaking{background:#62fff0;color:#62fff0;animation:signalBreath .8s infinite}.status-dot.is-listening{background:#83a9ff;color:#83a9ff;animation:signalBreath 1.8s infinite}.status-dot.is-thinking{background:#c08cff;color:#c08cff;animation:signalBreath 2.5s infinite}.status-dot.is-error{background:var(--danger);color:var(--danger)}
+#consoleToggle{pointer-events:auto;display:none;border:1px solid var(--line);background:rgba(5,7,12,.72);padding:9px 12px;border-radius:999px;font-size:9px;letter-spacing:.14em;white-space:nowrap;backdrop-filter:blur(16px)}
+.grid{display:block;width:100%;height:100%}
+.stage{position:fixed;inset:0;z-index:3;display:block;min-height:100svh;height:100svh;padding:0;border:0;border-radius:0;background:transparent;overflow:hidden;pointer-events:none}
+.stage:before{content:"";position:absolute;top:24%;left:50%;width:min(65vw,760px);height:min(60vw,560px);transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.046),rgba(83,76,255,.022) 34%,transparent 69%);filter:blur(18px);pointer-events:none}
+.scene-ring{position:absolute;left:50%;top:42%;width:min(80vw,590px);height:min(58vw,450px);transform:translate(-50%,-50%);border:1px solid rgba(228,239,255,.035);border-radius:50%;filter:blur(.2px);opacity:.9}
+.scene-ring:before,.scene-ring:after{content:"";position:absolute;inset:8% 18%;border:1px solid rgba(170,198,255,.035);border-radius:50%;transform:rotate(-24deg)}
+.scene-ring:after{inset:14% 10%;transform:rotate(29deg);border-color:rgba(255,107,214,.03)}
+.aiko{position:absolute;left:50%;top:39%;width:min(74vw,320px);height:210px;transform:translate(-50%,-50%);display:grid;place-items:center;background:transparent;border:0;box-shadow:none;border-radius:0;overflow:visible;animation:floatFace 6.4s ease-in-out infinite;transition:filter .7s ease,transform .7s cubic-bezier(.2,.75,.2,1);filter:drop-shadow(0 0 23px rgba(245,251,255,.13));pointer-events:none}
+.aiko{width:min(88vw,520px);height:min(78vw,440px);filter:none;animation:none}
+.aiko:before{display:none}
+#aiko .face{display:block!important;position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);width:min(70%,360px);height:auto;z-index:3;overflow:visible;opacity:.84;animation:faceGlow 4.8s ease-in-out infinite}
+#orbLiquidCanvas{position:absolute;inset:5px;z-index:2;width:calc(100% - 10px);height:calc(100% - 10px);display:block;border-radius:50%;overflow:hidden}
+#particleShell{position:absolute;left:50%;top:47%;width:min(56vw,260px);aspect-ratio:1;transform:translate(-50%,-50%);z-index:1;border:1px solid rgba(210,233,255,.24);border-radius:50%;background:radial-gradient(circle at 34% 25%,rgba(170,221,255,.075),rgba(38,54,91,.045) 43%,rgba(8,12,28,.10) 76%,rgba(75,93,160,.025));box-shadow:inset 0 0 30px rgba(145,200,255,.075),0 0 28px rgba(80,140,255,.10);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);pointer-events:none;animation:shellBreath 5.2s ease-in-out infinite}
+#particleShell:after{content:"";position:absolute;inset:7px;z-index:3;border:1px solid rgba(226,239,255,.075);border-radius:50%;box-shadow:inset 0 0 18px rgba(160,194,255,.035);pointer-events:none}
+.aiko:before{content:"";position:absolute;width:80%;height:72%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.075),rgba(155,190,255,.02) 47%,transparent 72%);filter:blur(22px);transform:translateY(14px);transition:opacity .5s}
+.aiko.speaking{filter:drop-shadow(0 0 18px rgba(220,249,255,.23)) drop-shadow(0 0 42px rgba(127,103,255,.13));animation:entityBreathe 4.4s ease-in-out infinite}
+.aiko.interrupt{filter:drop-shadow(0 0 25px rgba(255,95,174,.3));transform:translate(-50%,-49%) scale(.97)}
+.face{position:relative;display:block;width:100%;height:100%;overflow:visible;z-index:2}
+.face .eye-white{fill:rgba(255,255,255,.045);stroke:rgba(235,249,255,.78);stroke-width:2.3;filter:drop-shadow(0 0 6px rgba(185,240,255,.72))}.face .pupil{fill:#eafcff;filter:drop-shadow(0 0 5px rgba(120,237,255,.95))}.face .brow,.face .mouth-line,.face .nose-line{fill:none;stroke:#edf9ff;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 6px rgba(180,229,255,.72))}.face .nose-line{stroke:rgba(222,244,255,.9);stroke-width:3;filter:drop-shadow(0 0 5px rgba(120,237,255,.8))}.face .nose-tip{fill:#c9f7ff;filter:drop-shadow(0 0 5px rgba(120,237,255,.9))}.face .mouth-open{fill:#f7fbff;stroke:none;opacity:0;transform-origin:140px 127px;filter:drop-shadow(0 0 9px rgba(255,255,255,.7));transition:opacity .16s ease}
+.aiko.mood-happy .face .brow,.aiko.mood-happy .face .mouth-line{stroke:#aaffef}.aiko.mood-sad .face .brow,.aiko.mood-sad .face .mouth-line{stroke:#c4d4ff}.aiko.mood-thinking .face .brow,.aiko.mood-thinking .face .mouth-line{stroke:#cdb5ff}.aiko.mood-surprised .face .brow,.aiko.mood-surprised .face .mouth-line{stroke:#ffb4dc}
+.aiko.blink .eye-pair{transform:scaleY(.09);transform-origin:140px 82px;transition:transform .08s ease}.eye-pair{transition:transform .12s ease}
+.aiko.mood-sad{filter:drop-shadow(0 0 16px rgba(185,205,255,.19))}.aiko.mood-happy{filter:drop-shadow(0 0 28px rgba(255,255,255,.28))}.aiko.mood-surprised{filter:drop-shadow(0 0 35px rgba(223,233,255,.3))}
+.mood-caption{position:absolute;top:55.5%;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:.32em;text-transform:uppercase;color:rgba(235,240,255,.58);white-space:nowrap;text-shadow:0 0 20px rgba(255,255,255,.18);z-index:6;transition:opacity .3s}
+.speech-subtitle{position:absolute;z-index:7;top:55.5%;left:50%;width:min(640px,calc(100vw - 40px));transform:translate(-50%,0);display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;pointer-events:none;opacity:.72;transition:opacity .65s ease}
+.speech-subtitle[hidden]{display:none}.speech-subtitle.is-fading{opacity:0}.speech-subtitle-label{font-size:8px;letter-spacing:.26em;text-transform:uppercase;color:rgba(112,244,239,.58);text-shadow:0 0 16px rgba(71,228,255,.2)}
+.speech-subtitle-text{max-width:100%;max-height:4.5em;padding:0 14px;color:rgba(231,239,255,.64);font-size:clamp(12px,1.6vw,16px);line-height:1.5;font-weight:400;text-shadow:0 2px 14px rgba(0,0,0,.9),0 0 20px rgba(132,164,255,.16);display:block;overflow-y:auto;scrollbar-width:none}
+.stage.has-speech-subtitle #moodCaption{opacity:0}
+.mood-caption:before,.mood-caption:after{content:"";display:inline-block;vertical-align:middle;width:22px;height:1px;margin:0 13px;background:linear-gradient(90deg,transparent,rgba(226,236,255,.3))}.mood-caption:after{transform:scaleX(-1)}
+.controls{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;pointer-events:auto}
+.main-controls{position:absolute;z-index:10;top:63.5%;left:50%;transform:translateX(-50%);gap:13px}
+button{border:0;transition:transform .2s ease,border-color .2s ease,background .2s ease,box-shadow .2s ease}
+button:not(:disabled):hover{transform:translateY(-1px)}button:active{transform:scale(.98)}button:disabled{opacity:.38;cursor:not-allowed}
+.primary{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-size:0;background:rgba(240,247,255,.94);color:#05070d;border:1px solid rgba(255,255,255,.85);box-shadow:0 0 0 7px rgba(255,255,255,.035),0 0 32px rgba(185,211,255,.22);position:relative}
+.primary:before{content:"";width:9px;height:15px;border:2px solid #080a10;border-radius:7px;background:transparent;position:relative;margin:0;box-shadow:0 7px 0 -3px #080a10}.primary:after{content:"";position:absolute;inset:-7px;border:1px solid rgba(232,244,255,.13);border-radius:50%;animation:ringPulse 3s ease-in-out infinite}
+.secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:10px 14px;border:1px solid rgba(233,241,255,.14);background:rgba(9,12,20,.62);border-radius:999px;color:#e9edfa;font-size:10px;letter-spacing:.05em;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.secondary:hover:not(:disabled),.ghost:hover:not(:disabled),.warm:hover:not(:disabled){border-color:rgba(105,245,238,.42);background:rgba(26,42,59,.77);box-shadow:0 0 20px rgba(67,221,226,.08)}
+#stop{min-width:65px;color:#cbd0df}.utility-controls{position:fixed;z-index:22;left:25px;top:76px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;pointer-events:auto}.utility-controls button{min-height:29px;padding:7px 10px;border-radius:7px;font-size:9px;letter-spacing:.06em;background:rgba(9,13,22,.76);color:#b7c0d4;border-color:rgba(213,226,255,.15)}
+.input-panel{position:fixed;z-index:22;left:50%;bottom:24px;transform:translateX(-50%);width:min(650px,calc(100vw - 390px));min-width:390px;pointer-events:auto}
+.input-shell{display:flex;align-items:flex-end;gap:8px;padding:7px 8px 7px 15px;border:1px solid rgba(227,239,255,.13);border-radius:18px;background:rgba(5,7,13,.72);box-shadow:0 15px 60px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.035);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.input-panel textarea{display:block;flex:1;min-width:0;width:100%;height:40px;min-height:40px;max-height:110px;resize:vertical;border:0;outline:0!important;background:transparent;color:#f7f8ff;font-size:12px;line-height:1.55;padding:10px 0}.input-panel textarea::placeholder{color:#6d7489}
+.input-panel .secondary{min-height:36px;padding:9px 12px}.input-panel #sendText{border:0;border-radius:12px;background:#f1f6ff;color:#070a12;font-size:10px;font-weight:650}.input-panel .file-actions{display:flex;gap:6px;margin-top:7px;justify-content:center;opacity:.7;transition:opacity .2s}.input-panel:focus-within .file-actions,.input-panel:hover .file-actions{opacity:1}.input-panel .file-actions .secondary{min-height:28px;padding:6px 10px;background:rgba(6,9,17,.50);font-size:9px}
+.input-message{min-height:15px;margin-top:5px;text-align:center;color:#a6afc5;font-size:10px;text-shadow:0 2px 8px #000}
+.hint,.research-note{display:none}.name{display:none}
+.side{position:fixed;z-index:25;right:22px;top:74px;bottom:22px;width:302px;max-height:calc(100svh - 96px);padding:12px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;overscroll-behavior:contain;border:1px solid rgba(225,238,255,.105);border-radius:19px;background:linear-gradient(150deg,rgba(11,14,24,.86),rgba(4,6,12,.68));box-shadow:0 22px 90px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.035);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);scrollbar-width:thin;scrollbar-color:rgba(184,202,255,.22) transparent}
+.section{padding:12px 12px 10px;border:1px solid rgba(225,236,255,.065);border-radius:13px;background:rgba(255,255,255,.018);animation:sectionIn .55s both;transition:border-color .3s,background .3s}.section:nth-child(2){animation-delay:.04s}.section:nth-child(3){animation-delay:.08s}.section:nth-child(4){animation-delay:.12s}.section:nth-child(5){animation-delay:.16s}.section:nth-child(6){animation-delay:.2s}.section:hover{border-color:rgba(112,210,255,.14);background:rgba(255,255,255,.027)}
+.label{display:flex;align-items:center;gap:8px;margin-bottom:9px;font-size:9px;text-transform:uppercase;letter-spacing:.18em;color:#919ab0;font-weight:650}.label:before{content:"";width:14px;height:1px;background:linear-gradient(90deg,var(--cyan),transparent);opacity:.8}
+.row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid rgba(228,238,255,.047);font-size:10px;color:#9ca4b8}.row:last-child{border-bottom:0}.row>span:first-child{flex:0 0 auto}.row>span:last-child,.row>b{max-width:64%;overflow-wrap:anywhere;text-align:right;color:#e6eaf5;font-weight:520}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:9px}.good{color:var(--good)!important}.yellow{color:var(--warn)!important}.red{color:var(--danger)!important}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border-radius:999px;font-size:9px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.025)}.badge.good{border-color:rgba(115,247,199,.25);background:rgba(115,247,199,.055)}.badge.yellow{border-color:rgba(255,210,125,.2)}.badge.red{border-color:rgba(255,119,156,.25)}
+.toplist{display:flex;flex-wrap:wrap;gap:5px}.chip{padding:5px 7px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);font-size:9px;color:#c8d0e3;animation:chipIn .3s both}
+.barge-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.metric{padding:9px 10px;border-radius:10px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);position:relative;overflow:hidden}.metric:after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(92,255,240,.4),transparent);transform:translateX(-100%)}.metric:hover:after{animation:scanline .85s ease}.metric .k{font-size:8px;text-transform:uppercase;color:#7e879e;letter-spacing:.12em}.metric .v{font-size:17px;font-weight:600;margin-top:4px;letter-spacing:-.03em;color:#edf6ff;font-variant-numeric:tabular-nums}
+.transcript{max-height:90px;overflow:auto;font-size:11px;line-height:1.65;color:#e3e8f4;overflow-wrap:anywhere;scrollbar-width:thin}.log{height:170px;min-height:100px;overflow:auto;font:10px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;color:#b9c1d5;scrollbar-width:thin;scrollbar-color:rgba(184,202,255,.18) transparent}.log-entry{display:grid;grid-template-columns:62px minmax(0,1fr);gap:7px;padding:5px 0;border-bottom:1px solid rgba(235,240,255,.035);animation:logArrive .26s ease-out both}.log-time{font-size:8px;color:#657087;white-space:nowrap;padding-top:2px}.log-message{overflow-wrap:anywhere;color:#c0c8da}.log-entry.green .log-message{color:#8df5d0}.log-entry.yellow .log-message{color:#f2d49a}.log-entry.red .log-message{color:#ff9bb4}.log-entry:first-child{background:linear-gradient(90deg,rgba(100,255,239,.045),transparent);border-radius:4px}.log-entry:first-child .log-message{color:#edf8ff}
+.audio-sink{position:fixed!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;left:-10px!important;bottom:-10px!important}
+@keyframes signalBreath{0%,100%{opacity:.5;transform:scale(.92)}50%{opacity:1;transform:scale(1.12)}}
+@keyframes ringPulse{0%,100%{transform:scale(1);opacity:.45}50%{transform:scale(1.1);opacity:.12}}
+@keyframes floatFace{0%,100%{translate:0 0}50%{translate:0 -8px}}
+@keyframes entityBreathe{0%,100%{translate:0 0}50%{translate:0 -3px}}
+@keyframes particleGlow{0%,100%{opacity:.78;filter:brightness(.88)}50%{opacity:1;filter:brightness(1.12)}}
+@keyframes faceGlow{0%,100%{opacity:.66;filter:brightness(.9)}50%{opacity:.92;filter:brightness(1.1)}}
+@keyframes shellBreath{0%,100%{border-color:rgba(210,233,255,.18);box-shadow:inset 0 0 24px rgba(145,200,255,.055),0 0 18px rgba(80,140,255,.07)}50%{border-color:rgba(220,243,255,.32);box-shadow:inset 0 0 34px rgba(145,200,255,.095),0 0 32px rgba(80,140,255,.14)}}
+@keyframes sectionIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@keyframes chipIn{from{opacity:0;transform:translateY(3px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes logArrive{from{opacity:0;transform:translateX(5px);background:rgba(100,255,239,.04)}to{opacity:1;transform:translateX(0);background:transparent}}
+@keyframes scanline{to{transform:translateX(100%)}}
+@media(max-width:1120px){.side{width:278px;right:14px}.input-panel{left:18px;right:calc(278px + 34px);transform:none;width:auto;min-width:0;max-width:650px}.utility-controls{left:17px}.top{left:19px;right:19px}}
+@media(max-width:900px){.aiko{left:calc(50% - 110px)}.mood-caption{left:calc(50% - 110px)}}
+@media(max-width:900px){.speech-subtitle{left:calc(50% - 110px);width:min(580px,calc(100vw - 32px));top:53%}}
+@media(max-width:760px){html,body{overflow:hidden}.top{left:14px;right:14px;top:14px;align-items:flex-start}.eyebrow{font-size:8px;letter-spacing:.17em;gap:8px;padding-top:10px}.status-pill{position:absolute;top:33px;left:0;max-width:calc(100vw - 145px);font-size:10px;padding:7px 10px}#consoleToggle{display:block;margin-left:auto;font-size:8px;padding:9px 10px}.side{display:flex;top:77px;right:10px;bottom:10px;width:min(340px,calc(100vw - 20px));max-height:none;background:rgba(4,6,12,.94);z-index:40}.side.is-collapsed{display:none}.stage:before{top:35%;width:100vw;height:75vw}.scene-ring{top:40%;width:96vw;height:62vw}.aiko{top:38%;width:min(96vw,420px);height:min(88vw,360px)}.mood-caption{top:51%;font-size:8px;letter-spacing:.22em}.mood-caption:before,.mood-caption:after{width:12px;margin:0 7px}.main-controls{top:60%;gap:10px}.primary{width:53px;height:53px}.secondary{min-height:34px;padding:8px 11px}.utility-controls{top:auto;left:12px;bottom:120px;flex-direction:row;gap:5px}.utility-controls button{font-size:8px;padding:7px 8px;min-height:26px}.input-panel{left:12px;right:12px;bottom:16px;transform:none;width:auto;min-width:0}.input-shell{gap:6px;padding:6px 7px 6px 12px;border-radius:15px}.input-panel textarea{font-size:11px;height:38px;min-height:38px;padding:9px 0}.input-panel #sendText{padding:9px 10px;min-height:34px}.input-panel .file-actions{margin-top:5px;gap:4px}.input-panel .file-actions .secondary{padding:5px 8px;font-size:8px;min-height:25px}.input-message{font-size:9px;min-height:12px}.log{height:150px}.research-note,.hint{display:none}}
+@media(max-width:400px){.aiko{top:36%;height:165px}.mood-caption{top:49%}.main-controls{top:58%}.utility-controls{bottom:119px}.input-panel .file-actions{opacity:.92}.input-panel .file-actions .secondary{padding:5px 6px}.main-controls #stop{min-width:57px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body data-mode="idle">
+<canvas id="liquidCanvas" aria-hidden="true"></canvas>
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow"><span class="signal-mark"></span><span>LIVE VOICE INTERFACE</span></div>
+    <div class="status-pill"><span id="statusDot" class="status-dot"></span><span id="status" role="status" aria-live="polite">Initializing voice interface…</span></div>
+    <button id="consoleToggle" type="button" aria-controls="telemetry" aria-expanded="true">HIDE ACTIVITY</button>
+  </header>
+
+  <div class="grid">
+    <main class="panel stage" aria-label="Voice companion">
+      <div class="scene-ring" aria-hidden="true"></div>
+      <div id="aiko" class="aiko mood-neutral" data-mode="idle" aria-label="Animated companion expression">
+        <div id="particleShell" aria-hidden="true">
+          <canvas id="orbLiquidCanvas" aria-hidden="true"></canvas>
+        </div>
+        <svg id="face" class="face" viewBox="0 0 280 180" role="img" aria-label="Minimal expressive white face">
+          <defs><filter id="faceGlow" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="2.8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+          <g class="brows" filter="url(#faceGlow)">
+            <path id="browLeft" class="brow" d="M66 56 Q84 49 101 56"/>
+            <path id="browRight" class="brow" d="M179 56 Q196 49 214 56"/>
+          </g>
+          <g id="eyeLeft" class="eye-pair">
+            <ellipse class="eye-white" cx="84" cy="82" rx="13" ry="15"/>
+            <ellipse class="pupil" cx="87" cy="83" rx="4" ry="5"/>
+          </g>
+          <g id="eyeRight" class="eye-pair">
+            <ellipse class="eye-white" cx="196" cy="82" rx="13" ry="15"/>
+            <ellipse class="pupil" cx="199" cy="83" rx="4" ry="5"/>
+          </g>
+          <path id="noseLine" class="nose-line" d="M140 94 Q136 104 140 108"/>
+          <circle class="nose-tip" cx="140" cy="108" r="2.2"/>
+          <path id="mouthLine" class="mouth-line" d="M119 126 Q140 130 161 126"/>
+          <ellipse id="mouthOpen" class="mouth-open" cx="140" cy="127" rx="9" ry="12"/>
+        </svg>
+      </div>
+      <div id="moodCaption" class="mood-caption">HERE WITH YOU</div>
+      <div id="speechSubtitle" class="speech-subtitle" aria-live="polite" aria-atomic="true" hidden>
+        <span id="speechSubtitleLabel" class="speech-subtitle-label">TRANSCRIBING</span>
+        <span id="speechSubtitleText" class="speech-subtitle-text"></span>
+      </div>
+
+      <div class="controls main-controls">
+        <button id="play" class="primary" type="button" title="Start voice conversation (microphone required)" aria-label="Start voice conversation; microphone required" disabled>Start voice conversation</button>
+        <button id="stop" class="secondary" type="button" disabled>STOP</button>
+      </div>
+
+      <div class="utility-controls">
+        <button id="warmup" class="small warm" type="button" disabled>WARM UP SER</button>
+        <button id="refresh" class="small ghost" type="button" disabled>REFRESH METRICS</button>
+        <button id="reset" class="small ghost" type="button" disabled>NEW SESSION</button>
+      </div>
+
+      <div class="input-panel">
+        <div class="input-shell">
+          <textarea id="textInput" maxlength="8000" rows="1" aria-label="Message input" placeholder="Say something… or type a message" autocomplete="off"></textarea>
+          <button id="sendText" class="secondary" type="button" disabled>Send ↗</button>
+        </div>
+        <div class="file-actions">
+          <button id="recordVoice" class="secondary" type="button" disabled>◉ &nbsp; Record voice</button>
+          <input id="audioFile" type="file" accept="audio/wav,audio/x-wav,audio/mpeg,audio/ogg,audio/webm,.wav,.mp3,.ogg,.webm" hidden>
+          <button id="chooseAudio" class="secondary" type="button" disabled>Choose audio</button>
+          <button id="sendAudioFile" class="secondary" type="button" disabled>Process file</button>
+        </div>
+        <div id="inputMessage" class="input-message" role="status" aria-live="polite"></div>
+      </div>
+    </main>
+
+    <aside id="telemetry" class="panel side" aria-label="Live activity and diagnostics">
+      <div class="section">
+        <div class="label">Live pipeline</div>
+        <div class="row"><span>Language model</span><span class="mono" id="llm">checking</span></div>
+        <div class="row"><span>Speech recognition</span><span class="mono" id="stt">checking</span></div>
+        <div class="row"><span>Acoustic emotion</span><span id="serStatus" class="badge yellow">lazy</span></div>
+        <div class="row"><span>Voice synthesis</span><span class="mono" id="tts">checking</span></div>
+      </div>
+
+      <div class="section">
+        <div class="label">Emotion signal</div>
+        <div class="row"><span>Detected</span><b id="userEmotion">—</b></div>
+        <div class="row"><span>Confidence</span><span id="emotionConfidence">—</span></div>
+        <div class="row"><span>Source</span><span class="mono" id="emotionSource">—</span></div>
+        <div class="row"><span>Acoustic</span><span class="mono" id="acousticPrediction">—</span></div>
+        <div class="row"><span>Lexical</span><span class="mono" id="lexicalPrediction">—</span></div>
+        <div class="row"><span>Response policy</span><span id="emotionPolicy">—</span></div>
+        <div style="margin-top:8px" class="toplist" id="topEmotions"></div>
+      </div>
+
+      <div class="section">
+        <div class="label">Voice character</div>
+        <div class="row"><span>Response style</span><b id="emotion">—</b></div>
+        <div class="row"><span>Voice style</span><span class="mono" id="voiceStyle">—</span></div>
+        <div class="row"><span>Expression</span><span id="expression">—</span></div>
+        <div class="row"><span>Gesture</span><span id="gesture">—</span></div>
+        <div class="row"><span>Gaze</span><span id="gaze">—</span></div>
+        <div class="row"><span>Lip-sync</span><span id="lip">—</span></div>
+      </div>
+
+      <div class="section">
+        <div class="label">Interruption response</div>
+        <div class="barge-grid">
+          <div class="metric"><div class="k">Interruptions</div><div class="v" id="interruptions">0</div></div>
+          <div class="metric"><div class="k">Last latency</div><div class="v" id="bargeLatency">—</div></div>
+        </div>
+        <div class="row" style="margin-top:7px"><span>Backend cancel</span><span id="cancelState">—</span></div>
+      </div>
+
+      <div class="section">
+        <div class="label">Latest transcript</div>
+        <div id="transcript" class="transcript">No turn yet.</div>
+      </div>
+
+      <div class="section">
+        <div class="label">Assistant response</div>
+        <div id="assistantResponse" class="transcript">No response yet.</div>
+        <a id="audioDownload" hidden download="assistant-response.mp3" style="display:inline-block;margin-top:8px;color:#86fff1;font-size:10px">Download voice response ↗</a>
+        <div class="row" style="margin-top:8px"><span>Request ID</span><span class="mono" id="requestId">—</span></div>
+        <div class="row"><span>Session ID</span><span class="mono" id="sessionId">—</span></div>
+        <div class="row"><span>Model used</span><span class="mono" id="llmUsed">—</span></div>
+        <div class="row"><span>Response timing</span><span class="mono" id="processingTime">—</span></div>
+      </div>
+
+      <div class="section">
+        <div class="label">Live event stream</div>
+        <div id="log" class="log" role="log" aria-live="polite" aria-relevant="additions"></div>
+      </div>
+    </aside>
+  </div>
+  <audio id="audio" class="audio-sink" preload="auto" aria-label="Assistant voice response audio"></audio>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const state = {
+    token: null, sessionId: null, stream: null,
+    audioContext: null, analyser: null, processor: null, zeroGain: null, raf: null,
+    outputAudioContext: null, outputAnalyser: null, outputSource: null, outputData: null,
+    visualMode: "idle", visualMood: "neutral", liquidEnergy: 0, liquidRaf: null, audioAmplitude: 0, particleEntity: null,
+    speaking: false, capture: false, manualRecording: false, manualRecordTimer: null, speechStartedAt: 0, silenceAt: 0, captureLimitUntilSilence: false,
+    speechCandidateAt: 0, abortController: null, pcmChunks: [], pcmLength: 0,
+    preRollChunks: [], preRollLength: 0, noiseFloor: 0.006, playbackAbort: null,
+    audioUrl: null, audioDownloadUrl: null, discardRecording: false, interruptionCount: 0,
+    busy: false, sessionEpoch: 0, subtitleTimer: null, subtitleFadeTimer: null,
+    captionRecognition: null, liveCaptionBase: "", liveCaptionCurrent: "", captionRestartTimer: null, captionUnavailable: false,
+    lastBargeLatencyMs: null, serverCancelled: null
+  };
+
+  const moodClasses = ["mood-happy", "mood-sad", "mood-thinking", "mood-surprised", "mood-calm", "mood-neutral"];
+
+  function log(message, cls="") {
+    const row = document.createElement("div");
+    row.className = `log-entry ${cls || ""}`.trim();
+    const stamp = document.createElement("span"); stamp.className = "log-time";
+    stamp.textContent = new Date().toLocaleTimeString();
+    const text = document.createElement("span"); text.className = "log-message"; text.textContent = message;
+    row.append(stamp, text); $("log").prepend(row);
+    while ($("log").children.length > 80) $("log").lastElementChild.remove();
+  }
+
+  function setVisualMode(mode) {
+    const normalized = String(mode || "idle").toLowerCase();
+    state.visualMode = normalized;
+    if (state.particleEntity) state.particleEntity.uniforms.mode.value = normalized.includes("speak") ? 1 : normalized.includes("listen") || normalized.includes("record") ? 2 : normalized.includes("think") || normalized.includes("process") || normalized.includes("warmup") ? 3 : normalized.includes("interrupt") ? 4 : 0;
+    document.body.dataset.mode = normalized;
+    const a = $("aiko"); if (a) a.dataset.mode = normalized;
+    const dot = $("statusDot");
+    if (dot) {
+      dot.className = "status-dot";
+      if (normalized.includes("error")) dot.classList.add("is-error");
+      else if (normalized.includes("speak")) dot.classList.add("is-speaking");
+      else if (normalized.includes("listen") || normalized.includes("record")) dot.classList.add("is-listening");
+      else if (normalized.includes("think") || normalized.includes("warmup") || normalized.includes("process") || normalized.includes("load")) dot.classList.add("is-thinking");
+    }
+    const label = $("modeLabel");
+    if (label) label.textContent = normalized.includes("speak") ? "SPEAKING" : normalized.includes("listen") || normalized.includes("record") ? "LISTENING" : normalized.includes("think") || normalized.includes("warmup") || normalized.includes("process") || normalized.includes("load") ? "THINKING" : normalized.includes("interrupt") ? "INTERRUPTED" : normalized.includes("error") ? "ATTENTION" : "STANDBY";
+  }
+
+  function status(text, mode) {
+    $("status").textContent = text;
+    if (mode) {
+      const m = String(mode).toLowerCase();
+      const mapped = m.includes("speak") ? "speaking" : m.includes("listen") || m.includes("record") ? "listening" : m.includes("think") || m.includes("warmup") || m.includes("process") || m.includes("load") ? "thinking" : m.includes("interrupt") ? "interrupt" : m.includes("error") ? "error" : "idle";
+      setVisualMode(mapped);
+    }
+  }
+
+  function showSpeechSubtitle(text, phase="recognized") {
+    const overlay=$("speechSubtitle"), stage=document.querySelector(".stage");
+    if(!overlay)return;
+    clearTimeout(state.subtitleTimer); clearTimeout(state.subtitleFadeTimer);
+    overlay.classList.remove("is-fading");
+    $("speechSubtitleLabel").textContent=phase==="recognized"?"YOU SAID":phase==="live"?"LIVE TRANSCRIPT":phase==="listening"?"LISTENING":"TRANSCRIBING";
+    const captionText=$("speechSubtitleText"); captionText.textContent=text;
+    requestAnimationFrame(()=>{captionText.scrollTop=captionText.scrollHeight;});
+    overlay.hidden=!text;
+    stage?.classList.toggle("has-speech-subtitle",!!text);
+    if(text && phase==="recognized") state.subtitleTimer=setTimeout(()=>{overlay.classList.add("is-fading");state.subtitleFadeTimer=setTimeout(()=>{overlay.hidden=true;stage?.classList.remove("has-speech-subtitle");},700);},6500);
+  }
+
+  function applyMood(value) {
+    const raw = String(value || "neutral").toLowerCase();
+    let mood = "neutral";
+    if (/excited|happy|joy|cheer|playful|delight|positive|smile/.test(raw)) mood = "happy";
+    else if (/empat|compassion|comfort|gentle|calm|sooth|reassur|peace|warm/.test(raw)) mood = "calm";
+    else if (/sad|grief|sorry|melanchol/.test(raw)) mood = "sad";
+    else if (/think|confus|curious|uncertain|wonder|reflect|focused/.test(raw)) mood = "thinking";
+    else if (/surpris|astonish|wow/.test(raw)) mood = "surprised";
+    else if (/calm|sooth|reassur|peace/.test(raw)) mood = "calm";
+    state.visualMood = mood;
+    if (state.particleEntity) state.particleEntity.uniforms.mood.value = ({happy:1,sad:2,thinking:3,surprised:4,calm:5,neutral:0})[mood] || 0;
+    const face = $("aiko"); if (!face) return;
+    face.classList.remove(...moodClasses);
+    face.classList.add(`mood-${mood}`);
+    const browL = $("browLeft"), browR = $("browRight"), eyeL = $("eyeLeft"), eyeR = $("eyeRight");
+    const mouth = $("mouthLine"), mouthOpen = $("mouthOpen");
+    const expressions = {
+      happy: { bl: "M66 57 Q84 44 101 54", br: "M179 54 Q196 44 214 57", mouth: "M111 119 Q140 151 169 119", eye: 1, open: 0 },
+      sad: { bl: "M66 57 Q84 69 101 59", br: "M179 59 Q196 69 214 57", mouth: "M113 139 Q140 112 167 139", eye: .82, open: 0 },
+      thinking: { bl: "M66 54 Q84 48 101 57", br: "M179 48 Q197 38 214 50", mouth: "M121 127 Q140 117 157 128", eye: .94, open: 0 },
+      surprised: { bl: "M66 48 Q84 35 101 47", br: "M179 47 Q196 35 214 48", mouth: "M111 123 Q140 135 169 123", eye: 1.13, open: 1 },
+      calm: { bl: "M66 57 Q84 51 101 57", br: "M179 57 Q196 51 214 57", mouth: "M119 125 Q140 132 161 125", eye: .86, open: 0 },
+      neutral: { bl: "M66 56 Q84 49 101 56", br: "M179 56 Q196 49 214 56", mouth: "M119 126 Q140 130 161 126", eye: 1, open: 0 }
+    }[mood];
+    if (browL) browL.setAttribute("d", expressions.bl);
+    if (browR) browR.setAttribute("d", expressions.br);
+    if (eyeL) eyeL.setAttribute("transform", `translate(84 82) scale(1 ${expressions.eye}) translate(-84 -82)`);
+    if (eyeR) eyeR.setAttribute("transform", `translate(196 82) scale(1 ${expressions.eye}) translate(-196 -82)`);
+    if (mouth) mouth.setAttribute("d", expressions.mouth);
+    if (mouthOpen) mouthOpen.style.opacity = expressions.open ? "1" : "0";
+  }
+
+  function setBehavior(expr={}) {
+    $("emotion").textContent = expr.emotion || "—";
+    $("voiceStyle").textContent = expr.voice_style || "—";
+    $("expression").textContent = expr.expression || "—";
+    $("gesture").textContent = expr.gesture || "—";
+    $("gaze").textContent = expr.gaze || "—";
+    $("lip").textContent = expr.lip_sync || "—";
+    if (expr.emotion || expr.expression || expr.voice_style) applyMood(responseMood(expr));
+  }
+
+  function responseMood(expr={}) {
+    if (expr.emotion && !/neutral/i.test(String(expr.emotion))) return expr.emotion;
+    return expr.expression || expr.voice_style || expr.emotion || "neutral";
+  }
+
+  function setEmotion(userEmotion, confidence, source, top=[], expression=null) {
+    $("userEmotion").textContent = userEmotion || "—";
+    $("emotionConfidence").textContent = confidence == null ? "—" : `${(Number(confidence) * 100).toFixed(1)}%`;
+    $("emotionSource").textContent = source || "—";
+    const wrap = $("topEmotions"); wrap.innerHTML = "";
+    (top || []).slice(0,4).forEach(item => {
+      const chip = document.createElement("span"); chip.className = "chip";
+      chip.textContent = `${item.emotion}: ${(Number(item.confidence || 0)*100).toFixed(0)}%`; wrap.appendChild(chip);
+    });
+    if (userEmotion && userEmotion !== "—") {
+      applyMood(/neutral/i.test(String(userEmotion)) && expression ? responseMood(expression) : userEmotion);
+    }
+  }
+
+  function setFace(mode) {
+    const a = $("aiko"); a.classList.remove("speaking", "interrupt");
+    setVisualMode(mode);
+    if (mode === "speaking") a.classList.add("speaking");
+    else if (mode === "interrupt") { a.classList.add("interrupt"); applyMood("sad"); }
+    else if (mode === "idle") applyMood("neutral");
+    const caption = $("moodCaption");
+    if (caption) caption.textContent = mode === "speaking" ? "I'M HERE · SPEAKING" : mode === "listening" ? "I'M LISTENING" : mode === "thinking" ? "LET ME THINK" : mode === "interrupt" ? "I HEAR YOU" : "HERE WITH YOU";
+  }
+
+  function attachOutputAnalyser() {
+    if (state.outputSource) return;
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
+      state.outputAudioContext = state.outputAudioContext || new AudioContextClass();
+      state.outputAnalyser = state.outputAudioContext.createAnalyser();
+      state.outputAnalyser.fftSize = 512; state.outputAnalyser.smoothingTimeConstant = 0.74;
+      state.outputData = new Uint8Array(state.outputAnalyser.fftSize);
+      state.outputSource = state.outputAudioContext.createMediaElementSource($("audio"));
+      state.outputSource.connect(state.outputAnalyser); state.outputAnalyser.connect(state.outputAudioContext.destination);
+      state.outputAudioContext.resume().catch(() => {});
+      log("Outgoing audio analyser connected.", "green");
+    } catch (error) {
+      log(`Audio-reactive visuals unavailable: ${error.message}`, "yellow");
+    }
+  }
+
+  function initParticleEntity() {
+    const THREE = window.THREE;
+    const canvas = $("particleCanvas");
+    if (!THREE || !canvas) { log("Three.js unavailable; using the lightweight particle renderer.", "yellow"); initCanvasParticleFallback(); return; }
+    try {
+      const renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:false, powerPreference:"low-power"});
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(38, 1, .1, 100);
+      camera.position.z = 8.4;
+      const count = window.innerWidth < 700 ? 9000 : 16000;
+      const positions = new Float32Array(count * 3), seeds = new Float32Array(count), colors = new Float32Array(count * 3), sizes = new Float32Array(count);
+      const palette = [new THREE.Color("#eaf5ff"), new THREE.Color("#c9d4e8"), new THREE.Color("#61f7f2"), new THREE.Color("#a98aff"), new THREE.Color("#ff77d8")];
+      for (let i=0;i<count;i++) {
+        const y = Math.random()*2-1, angle = Math.random()*Math.PI*2, radial = Math.sqrt(1-y*y);
+        const organic = 1 + .012*Math.sin(angle*3+y*7) + .009*Math.cos(angle*5-y*4);
+        const radius = (Math.random()<.58 ? .72 + Math.random()*.28 : Math.cbrt(Math.random())) * (.97 + Math.random()*.06) * organic;
+        positions[i*3] = Math.cos(angle)*radial*radius;
+        positions[i*3+1] = y*radius;
+        positions[i*3+2] = Math.sin(angle)*radial*radius*.9;
+        seeds[i] = Math.random();
+        const color = palette[Math.random()<.73 ? (Math.random()<.55?0:1) : 2+Math.floor(Math.random()*3)];
+        colors[i*3]=color.r; colors[i*3+1]=color.g; colors[i*3+2]=color.b;
+        sizes[i] = 1.1 + Math.random()*2.1;
+      }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position",new THREE.BufferAttribute(positions,3));
+      geometry.setAttribute("aSeed",new THREE.BufferAttribute(seeds,1));
+      geometry.setAttribute("aColor",new THREE.BufferAttribute(colors,3));
+      geometry.setAttribute("aSize",new THREE.BufferAttribute(sizes,1));
+      const uniforms = {time:{value:0}, amplitude:{value:0}, mode:{value:0}, mood:{value:0}, pixelRatio:{value:renderer.getPixelRatio()}};
+      const material = new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,uniforms,
+        vertexShader:`attribute float aSeed; attribute float aSize; attribute vec3 aColor; uniform float time; uniform float amplitude; uniform float mode; uniform float mood; uniform float pixelRatio; varying vec3 vColor; varying float vAlpha; varying float vDepth; void main(){ vec3 p=position; float phase=time*(.82+aSeed*1.05); float moodSad=step(1.5,mood)*step(mood,2.5); float happy=step(.5,mood)*step(mood,1.5); float active=max(mode==1.0?1.0:0.0,amplitude); float wave=sin(phase+p.y*3.2+aSeed*16.0); float flow=sin(phase*.57+p.x*2.4-p.y*1.7); float deform=(.065*wave+.045*flow)+active*(.09+.1*amplitude)*wave; p*=1.0+deform; float swirl=phase*.72+aSeed*6.283+p.y*2.8; p.x+=sin(swirl+p.z*2.0)*(.085+active*.055); p.z+=cos(swirl+p.x*2.0)*(.10+active*.065); p.y+=sin(swirl*.68+p.x*2.4)*(.06+active*.05)-moodSad*.055; float orbit=(mode==3.0?1.0:0.0)+happy*.25; p.xy+=vec2(cos(phase+aSeed*6.28),sin(phase+aSeed*6.28))*(.035+orbit*.045); vec3 accent=vec3(.32,.88,1.0); if(mood>.5&&mood<1.5)accent=vec3(.43,1.0,.82); else if(mood>=1.5&&mood<2.5)accent=vec3(.55,.68,1.0); else if(mood>=2.5&&mood<3.5)accent=vec3(.72,.58,1.0); else if(mood>=3.5&&mood<4.5)accent=vec3(1.0,.5,.76); vColor=mix(aColor,accent,mood>.5?.25:.12); vec4 mv=modelViewMatrix*vec4(p,1.0); vDepth=clamp((p.z+1.15)/2.3,.25,1.0); gl_Position=projectionMatrix*mv; gl_PointSize=clamp(aSize*pixelRatio*(1.0+active*.42)*(7.0/-mv.z),1.0,7.0); vAlpha=(.42+.42*(.5+.5*sin(phase*1.6+aSeed*20.0))+active*.14)*(.62+vDepth*.38); }`,
+        fragmentShader:`varying vec3 vColor; varying float vAlpha; varying float vDepth; void main(){ float d=length(gl_PointCoord-.5); if(d>.5) discard; float core=smoothstep(.5,.02,d); float halo=exp(-d*9.0)*.32; gl_FragColor=vec4(vColor*(.68+vDepth*.5), (core+halo)*vAlpha*.46); }`});
+      const points = new THREE.Points(geometry,material); points.scale.setScalar(1.5); points.position.y=.14; scene.add(points);
+      const resize=()=>{const rect=canvas.getBoundingClientRect(); renderer.setSize(Math.max(rect.width,1),Math.max(rect.height,1),false);camera.aspect=Math.max(rect.width,1)/Math.max(rect.height,1);camera.updateProjectionMatrix();uniforms.pixelRatio.value=renderer.getPixelRatio();};
+      window.addEventListener("resize",resize,{passive:true}); resize();
+      state.particleEntity={renderer,scene,camera,points,uniforms};
+      const tick=(now)=>{if(!state.particleEntity)return;requestAnimationFrame(tick);uniforms.time.value=now*.001;uniforms.amplitude.value+=(state.audioAmplitude-uniforms.amplitude.value)*.12;points.rotation.y=now*.00045;points.rotation.x=Math.sin(now*.00028)*.19;points.rotation.z=Math.sin(now*.0002)*.07;renderer.render(scene,camera);};
+      requestAnimationFrame(tick);
+    } catch(error) { log(`WebGL particle renderer unavailable; using fallback: ${error.message}`,"yellow"); initCanvasParticleFallback(); }
+  }
+
+  function initCanvasParticleFallback() {
+    const host=$("aiko"); if(!host||$("particleFallback"))return;
+    const canvas=document.createElement("canvas"); canvas.id="particleFallback"; canvas.setAttribute("aria-hidden","true");
+    canvas.style.cssText="position:absolute;inset:0;z-index:1;width:100%;height:100%;pointer-events:none"; host.appendChild(canvas);
+    const ctx=canvas.getContext("2d"); if(!ctx)return;
+    let width=1,height=1,dpr=1,smoothedAmplitude=0;
+    const dots=Array.from({length:5200},()=>{const angle=Math.random()*Math.PI*2;const radius=Math.sqrt(Math.random());return {x:Math.cos(angle)*radius,y:Math.sin(angle)*radius,z:Math.random()*2-1,phase:Math.random()*Math.PI*2,size:.45+Math.random()*1.4,tint:Math.random()};});
+    const resize=()=>{const box=canvas.getBoundingClientRect();width=Math.max(1,box.width);height=Math.max(1,box.height);dpr=Math.min(devicePixelRatio||1,1.5);canvas.width=Math.floor(width*dpr);canvas.height=Math.floor(height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);};
+    window.addEventListener("resize",resize,{passive:true});resize();
+      const draw=(now)=>{requestAnimationFrame(draw);ctx.clearRect(0,0,width,height);const mood=state.visualMood, mode=state.visualMode;const active=mode==="speaking"?1:mode==="thinking"?.5:.18;smoothedAmplitude+=(state.audioAmplitude-smoothedAmplitude)*.08;const amp=smoothedAmplitude;const scale=Math.min(width,height)*(.27+active*.012+amp*.04);const time=now*.001;const breathe=.9+.1*(.5+.5*Math.sin(time*1.3));const yaw=time*.24;const colors=mood==="sad"?["#e8efff","#cad8f2","#b6ccff","#a7bfff","#b1abff","#c4b9ff"]:mood==="happy"||mood==="excited"?["#f0fbff","#cbeaff","#79fff0","#91e9ff","#c09bff","#ff8ce2"]:mood==="thinking"?["#eef1ff","#d7d0ff","#b9a5ff","#a991ff","#d2baff","#a8bfff"]:mood==="calm"?["#fff5f2","#e7e9ff","#c6e7ff","#c1dcff","#ddbfff","#ffd0df"]:["#eef5ff","#cbd5e4","#c9faff","#91e9ff","#ae9bff","#fc8bdc"];
+      ctx.globalCompositeOperation="lighter";for(const dot of dots){const moodSpeed=mood==="sad"?.78:mood==="happy"||mood==="excited"?1.18:mood==="thinking"?.92:1;const flow=time*(.65+dot.tint*.72+amp*.8)*moodSpeed+dot.phase;const angle=Math.atan2(dot.y,dot.x);const edge=1+.022*Math.sin(angle*3+flow*.45)+.016*Math.cos(angle*5-flow*.35);let x=dot.x*edge*(1+.035*Math.sin(flow+dot.y*3)+amp*.05*Math.sin(flow*2));let y=dot.y*edge*(1+.03*Math.cos(flow+dot.x*4)+amp*.045*Math.cos(flow*1.7));if(mood==="sad")y+=.025;if(mood==="happy"||mood==="excited")y-=.018*Math.sin(flow);const wobble=.018*Math.sin(flow*1.1+dot.z*5);x+=wobble;y-=wobble*.7;const rotatedX=x*Math.cos(yaw)+dot.z*Math.sin(yaw);const rotatedZ=dot.z*Math.cos(yaw)-x*Math.sin(yaw);const perspective=1/(1.25-rotatedZ*.22);const px=width*.5+rotatedX*scale*perspective,py=height*.43+y*scale*perspective;const alpha=(.38+.42*(.5+.5*Math.sin(flow*1.4)))*breathe*(.72+Math.max(0,rotatedZ)*.28);const size=dot.size*(1+amp*.22)*perspective;ctx.globalAlpha=alpha;ctx.fillStyle=colors[dot.tint<.72?Math.floor(dot.tint*2.8):2+Math.floor(dot.tint*4)%4];ctx.beginPath();ctx.arc(px,py,size,0,Math.PI*2);ctx.fill();}
+      ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over";};
+    requestAnimationFrame(draw);
+  }
+
+  function initOrbLiquid() {
+    const canvas=$("orbLiquidCanvas"); if(!canvas)return;
+    const ctx=canvas.getContext("2d",{alpha:true}); if(!ctx)return;
+    let width=1,height=1,dpr=1,smoothedAmplitude=0;
+    const resize=()=>{const box=canvas.getBoundingClientRect();width=Math.max(1,box.width);height=Math.max(1,box.height);dpr=Math.min(window.devicePixelRatio||1,1.5);canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);};
+    window.addEventListener("resize",resize,{passive:true});resize();
+    const wave=(time,base,amplitude,phase,speed,color,alpha,lineWidth)=>{
+      ctx.beginPath();
+      for(let x=0;x<=width+4;x+=4){const nx=x/width;const y=base+Math.sin(nx*7.2+time*speed+phase)*amplitude+Math.sin(nx*13-time*speed*.62+phase*1.7)*amplitude*.3;x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+      ctx.globalAlpha=alpha;ctx.strokeStyle=color;ctx.lineWidth=lineWidth;ctx.shadowColor=color;ctx.shadowBlur=12;ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1;
+    };
+    const draw=(now)=>{
+      requestAnimationFrame(draw);const time=now*.001;smoothedAmplitude+=(state.audioAmplitude-smoothedAmplitude)*.08;const active=state.visualMode==="speaking"?1:state.visualMode==="thinking"?.55:.18;const energy=Math.min(1,smoothedAmplitude*3.4+active*.25);const motion=1+active*.9+smoothedAmplitude*2.5;
+      ctx.clearRect(0,0,width,height);ctx.save();ctx.beginPath();ctx.arc(width/2,height/2,Math.min(width,height)*.493,0,Math.PI*2);ctx.clip();
+      const base=ctx.createRadialGradient(width*.42,height*.28,2,width*.5,height*.5,width*.74);base.addColorStop(0,"rgba(34,65,65,.96)");base.addColorStop(.55,"rgba(20,28,46,.98)");base.addColorStop(1,"rgba(4,7,16,1)");ctx.fillStyle=base;ctx.fillRect(0,0,width,height);
+      ctx.globalCompositeOperation="screen";
+      const blobs=[
+        [.22+.12*Math.sin(time*.48),.35+.08*Math.cos(time*.62),.58,"255,35,77",.86],
+        [.76+.10*Math.cos(time*.42),.37+.12*Math.sin(time*.55),.62,"32,255,128",.82],
+        [.52+.14*Math.sin(time*.31+1),.72+.08*Math.cos(time*.46),.55,"255,46,157",.62],
+        [.43+.12*Math.cos(time*.38),.18+.07*Math.sin(time*.51),.48,"0,220,255",.46]
+      ];
+      for(const [bx,by,r,c,a] of blobs){const radius=Math.min(width,height)*r;const glow=ctx.createRadialGradient(width*bx,height*by,1,width*bx,height*by,radius);glow.addColorStop(0,`rgba(${c},${a})`);glow.addColorStop(.42,`rgba(${c},${a*.38})`);glow.addColorStop(1,`rgba(${c},0)`);ctx.fillStyle=glow;ctx.fillRect(0,0,width,height);}
+      ctx.globalCompositeOperation="source-over";
+      const center=height*(.49+.04*Math.sin(time*.72));
+      wave(time,center-height*.17, height*(.045+energy*.07),.4,motion*.84,"#30ff9b",.62,2.5);
+      wave(time,center, height*(.055+energy*.085),2.3,motion,"#ff365f",.72,3.2);
+      wave(time,center+height*.18, height*(.05+energy*.08),4.1,motion*1.12,"#ff55cf",.65,2.4);
+      wave(time,center+height*.34, height*(.04+energy*.06),5.5,motion*.76,"#55ffe1",.58,2);
+      ctx.restore();
+    };
+    requestAnimationFrame(draw);
+  }
+
+  function initLiquid() {
+    const canvas = $("liquidCanvas"); const ctx = canvas.getContext("2d", { alpha: true });
+    if (!ctx) return;
+    let width = 0, height = 0, dpr = 1, frame = 0;
+    const resize = () => {
+      dpr = Math.min(window.devicePixelRatio || 1, 1.7);
+      width = Math.max(1, window.innerWidth); height = Math.max(1, window.innerHeight);
+      canvas.width = Math.floor(width * dpr); canvas.height = Math.floor(height * dpr);
+      canvas.style.width = `${width}px`; canvas.style.height = `${height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    window.addEventListener("resize", resize, { passive: true }); resize();
+    const layers = [
+      { color: "#00f5ed", alpha: .60, speed: .00042, phase: .2, depth: .07 },
+      { color: "#1768ff", alpha: .58, speed: .00031, phase: 2.4, depth: .035 },
+      { color: "#773cff", alpha: .53, speed: .00025, phase: 4.1, depth: .005 },
+      { color: "#e12cff", alpha: .48, speed: .00036, phase: 5.7, depth: -.025 },
+      { color: "#ff4dba", alpha: .42, speed: .00020, phase: 1.2, depth: -.055 },
+      { color: "#ff1838", alpha: .50, speed: .00029, phase: 3.5, depth: -.082 }
+    ];
+    const render = (now) => {
+      frame = requestAnimationFrame(render);
+      ctx.clearRect(0, 0, width, height);
+      const audio = $("audio");
+      const isSpeaking = !!(state.speaking && audio && !audio.paused && !audio.ended);
+      let amplitude = 0;
+      if (isSpeaking && state.outputAnalyser && state.outputData) {
+        state.outputAnalyser.getByteTimeDomainData(state.outputData);
+        let sum = 0;
+        for (let i = 0; i < state.outputData.length; i++) { const v = (state.outputData[i] - 128) / 128; sum += v * v; }
+        amplitude = Math.min(1, Math.max(0, (Math.sqrt(sum / state.outputData.length) - .006) * 8.2));
+      } else if (!isSpeaking && (state.visualMode === "listening" || state.visualMode === "recording") && state.analyser) {
+        amplitude = Math.min(.24, rms() * 3.4);
+      }
+      const mode = state.visualMode;
+      state.audioAmplitude = amplitude;
+      let targetEnergy = isSpeaking ? .20 + amplitude * .80 : mode === "thinking" ? .17 : mode === "listening" || mode === "recording" ? .13 + amplitude * .35 : mode === "interrupt" ? .09 : .04;
+      if (mode === "error") targetEnergy = .06;
+      const rise = targetEnergy > state.liquidEnergy;
+      state.liquidEnergy += (targetEnergy - state.liquidEnergy) * (rise ? (isSpeaking ? .14 : .07) : .027);
+      const energy = Math.max(0, Math.min(1, state.liquidEnergy));
+      const hueShift = Math.sin(now * .00014) * .5 + .5;
+      const glow = ctx.createRadialGradient(width * (.42 + hueShift * .2), height * .94, 0, width * .50, height * 1.02, height * .53);
+      glow.addColorStop(0, `rgba(40, 77, 255, ${.04 + energy * .09})`);
+      glow.addColorStop(.46, `rgba(190, 30, 255, ${.025 + energy * .065})`);
+      glow.addColorStop(.72, `rgba(255, 38, 79, ${.012 + energy * .045})`);
+      glow.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = glow; ctx.fillRect(0, height * .50, width, height * .5);
+      const redX = width * (.18 + .64 * (.5 + .5 * Math.sin(now * .00022)));
+      const redGlow = ctx.createRadialGradient(redX, height * 1.02, 0, redX, height * 1.02, height * .32);
+      redGlow.addColorStop(0, `rgba(255,10,28,${.23 + energy * .3})`);
+      redGlow.addColorStop(.55, `rgba(255,18,42,${.1 + energy * .18})`);
+      redGlow.addColorStop(1, "rgba(255,30,62,0)");
+      ctx.globalCompositeOperation = "screen"; ctx.fillStyle = redGlow; ctx.fillRect(0, height * .60, width, height * .4); ctx.globalCompositeOperation = "source-over";
+      const basePercent = isSpeaking ? .205 + energy * .115 : mode === "listening" || mode === "recording" ? .055 + energy * .018 : mode === "thinking" ? .065 + Math.sin(now * .0006) * .008 : mode === "interrupt" ? .075 : .042;
+      layers.forEach((layer, index) => {
+        const layerEnergy = isSpeaking ? energy : energy * .42;
+        const base = height * Math.min(.35, Math.max(.035, basePercent + layer.depth * (isSpeaking ? 1 : .45)));
+        const amplitudeY = height * (.013 + layerEnergy * (isSpeaking ? .055 : .025));
+        // One continuous RGB spectrum per translucent layer avoids white, over-blended bands.
+        const tint = .20 + layer.alpha * .16;
+        const gradient = ctx.createLinearGradient(0, 0, width, 0);
+        const phase = now * layer.speed + layer.phase;
+        const redPosition = .58 + (.24 * (.5 + .5 * Math.sin(now * .00024 + phase)));
+        gradient.addColorStop(0, `rgba(0,245,237,${tint})`);
+        gradient.addColorStop(.20, `rgba(20,105,255,${tint})`);
+        gradient.addColorStop(.40, `rgba(105,55,255,${tint})`);
+        gradient.addColorStop(.55, `rgba(220,42,255,${tint})`);
+        gradient.addColorStop(redPosition, `rgba(255,24,56,${Math.min(.68,tint*1.7)})`);
+        gradient.addColorStop(redPosition + .12, `rgba(255,65,185,${tint})`);
+        gradient.addColorStop(1, `rgba(0,245,237,${tint})`);
+        const points = Math.max(100, Math.ceil(width / (width < 600 ? 6 : 5)));
+        ctx.beginPath(); ctx.moveTo(0, height);
+        for (let i = 0; i <= points; i++) {
+          const x = (i / points) * width;
+          const nx = x / Math.max(width, 1);
+          const organic = Math.sin(nx * 5.2 + phase) * .52 + Math.sin(nx * 10.1 - phase * 1.37 + index) * .24 + Math.sin(nx * 2.25 + phase * .61) * .24;
+          const travelingBulge = Math.exp(-Math.pow((nx - (.5 + .34 * Math.sin(phase * .41 + index))) / (.13 + energy * .05), 2));
+          const ripple = mode === "listening" || mode === "recording" ? Math.sin(nx * 28 + now * .002 + index) * height * .0025 : 0;
+          const y = height - base + organic * amplitudeY + travelingBulge * amplitudeY * (.32 + layer.depth * 2) + ripple;
+          ctx.lineTo(x, y);
+        }
+        ctx.lineTo(width, height); ctx.closePath();
+        ctx.globalCompositeOperation = "screen"; ctx.globalAlpha = .78; ctx.fillStyle = gradient;
+        ctx.shadowBlur = 7 + energy * 16; ctx.shadowColor = layer.color; ctx.fill(); ctx.globalAlpha = 1;
+        ctx.beginPath();
+        for (let i = 0; i <= points; i++) {
+          const x = (i / points) * width; const nx = x / Math.max(width, 1);
+          const organic = Math.sin(nx * 5.2 + phase) * .52 + Math.sin(nx * 10.1 - phase * 1.37 + index) * .24 + Math.sin(nx * 2.25 + phase * .61) * .24;
+          const travelingBulge = Math.exp(-Math.pow((nx - (.5 + .34 * Math.sin(phase * .41 + index))) / (.13 + energy * .05), 2));
+          const ripple = mode === "listening" || mode === "recording" ? Math.sin(nx * 28 + now * .002 + index) * height * .0025 : 0;
+          const y = height - base + organic * amplitudeY + travelingBulge * amplitudeY * (.32 + layer.depth * 2) + ripple;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.globalCompositeOperation = "screen"; ctx.globalAlpha = .32 + layer.alpha * .28; ctx.lineWidth = 1.0 + energy * 1.4;
+        ctx.strokeStyle = layer.color; ctx.shadowBlur = 6 + energy * 12; ctx.shadowColor = layer.color; ctx.stroke(); ctx.globalAlpha = 1;
+      });
+      const redCenter = .2 + .6 * (.5 + .5 * Math.sin(now * .00021));
+      const redLiquid = ctx.createLinearGradient(0, 0, width, 0);
+      redLiquid.addColorStop(0, "rgba(255,22,48,.08)");
+      redLiquid.addColorStop(redCenter - .18, "rgba(255,24,48,.22)");
+      redLiquid.addColorStop(redCenter, "rgba(255,18,38,.78)");
+      redLiquid.addColorStop(redCenter + .18, "rgba(255,42,76,.24)");
+      redLiquid.addColorStop(1, "rgba(255,24,56,.08)");
+      const redPoints = Math.max(90, Math.ceil(width / 7));
+      ctx.beginPath(); ctx.moveTo(0, height);
+      for (let i=0;i<=redPoints;i++) {
+        const x=(i/redPoints)*width, nx=x/Math.max(width,1);
+        const wave=Math.sin(nx*7.2+now*.00031)*.55+Math.sin(nx*13.5-now*.00023)*.28+Math.sin(nx*3.1+now*.00017)*.17;
+        const y=height-height*basePercent*.82+wave*height*(.008+energy*.018);
+        ctx.lineTo(x,y);
+      }
+      ctx.lineTo(width,height);ctx.closePath();ctx.globalCompositeOperation="screen";ctx.globalAlpha=.56;ctx.fillStyle=redLiquid;ctx.shadowBlur=8+energy*15;ctx.shadowColor="#ff1838";ctx.fill();ctx.globalAlpha=1;
+      ctx.globalCompositeOperation = "source-over"; ctx.shadowBlur = 0;
+      // Mouth motion is driven by the outgoing media element's actual analyser data.
+      const mouthOpen = $("mouthOpen");
+      if (mouthOpen) mouthOpen.style.opacity = isSpeaking ? String(Math.min(.95, .12 + amplitude * 1.15)) : (state.visualMood === "surprised" ? ".92" : "0");
+      const mouthLine = $("mouthLine"); if (mouthLine) mouthLine.style.opacity = isSpeaking ? ".16" : "1";
+    };
+    frame = requestAnimationFrame(render); state.liquidRaf = frame;
+    window.addEventListener("pagehide", () => { cancelAnimationFrame(frame); }, { once: true });
+  }
+
+  // Browsers vary their idle animation phase a little so the companion does not feel mechanical.
+  function startNaturalBlink() {
+    const face = $("aiko");
+    const blink = () => {
+      if (!document.hidden && face) {
+        face.classList.add("blink");
+        setTimeout(() => face.classList.remove("blink"), 150);
+      }
+      setTimeout(blink, 2600 + Math.random() * 3400);
+    };
+    setTimeout(blink, 1700 + Math.random() * 2100);
+  }
+
+  async function api(path, options={}) {
+    const headers = new Headers(options.headers || {}); if (state.token) headers.set("Authorization", `Bearer ${state.token}`);
+    return fetch(path, {...options, headers});
+  }
+
+  async function refreshEmotionStatus() {
+    const r = await api("/api/v1/voice/emotion/status"); if (!r.ok) return;
+    const d = await r.json();
+    const badge = $("serStatus"); badge.textContent = d.status || "unknown";
+    badge.className = `badge ${d.status === "ready" ? "good" : d.status === "load-failed" ? "red" : "yellow"}`;
+    if (d.model) log(`SER model: ${d.model}`);
+    if (d.load_error) log(`SER note: ${d.load_error}`, "yellow");
+  }
+
+  async function warmupEmotion() {
+    $("warmup").disabled = true; status("Loading acoustic emotion model…", "SER WARMUP");
+    log("Warm-up requested for acoustic SER model.");
+    try {
+      const r = await api("/api/v1/voice/emotion/warmup", {method:"POST"});
+      const d = await r.json().catch(() => ({}));
+      if (d.status === "ready") log("Acoustic SER model ready.", "green");
+      else log(`Acoustic SER warm-up status: ${d.status || "unknown"}`, d.warmup_error ? "red" : "yellow");
+      await refreshEmotionStatus();
+    } catch (e) { log(`SER warm-up failed: ${e.message}`, "red"); }
+    finally { $("warmup").disabled = false; status("Ready — tap the mic to start", "READY"); }
+  }
+
+  async function refreshMetrics() {
+    if (!state.sessionId) return;
+    try {
+      const r = await api(`/api/v1/voice/sessions/${state.sessionId}/metrics`); if (!r.ok) return;
+      const d = await r.json(); $("interruptions").textContent = d.interruptions ?? 0;
+    } catch (_) {}
+  }
+
+  async function init() {
+    const r = await fetch("/api/v1/demo/token"); if (!r.ok) throw new Error(`Demo token failed (${r.status})`);
+    state.token = (await r.json()).access_token;
+    const s = await api("/api/v1/voice/sessions", {method:"POST"}); if (!s.ok) throw new Error(`Session creation failed (${s.status})`);
+    state.sessionId = (await s.json()).session_id;
+    const diagnostics = await fetch("/api/v1/demo/diagnostics");
+    if (diagnostics.ok) {
+      const provider = (await diagnostics.json()).providers || {};
+      $("llm").textContent = provider.configured_llm ? `${provider.configured_llm} / ${provider.configured_llm_model || "model unknown"}` : "unavailable";
+      $("stt").textContent = provider.stt_provider || "unavailable";
+      $("tts").textContent = provider.tts_provider || "unavailable";
+    }
+    $("play").disabled = false; $("warmup").disabled = false; $("refresh").disabled = false;
+    $("reset").disabled = false; $("sendText").disabled = false; $("recordVoice").disabled = false; $("chooseAudio").disabled = false;
+    log("Authenticated demo session created.", "green"); await refreshEmotionStatus(); await refreshMetrics();
+    status("Ready — tap the mic to start", "READY");
+    void warmupEmotion();
+  }
+
+  async function ensureMic() {
+    if (state.stream) return;
+    state.stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+    state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    if(state.audioContext.state==="suspended")await state.audioContext.resume();
+    const source = state.audioContext.createMediaStreamSource(state.stream);
+    state.analyser = state.audioContext.createAnalyser(); state.analyser.fftSize = 1024; source.connect(state.analyser);
+    state.processor = state.audioContext.createScriptProcessor(4096,1,1); state.zeroGain = state.audioContext.createGain(); state.zeroGain.gain.value = 0;
+    state.processor.onaudioprocess = event => {
+      const input = event.inputBuffer.getChannelData(0);
+      if (state.capture) { state.pcmChunks.push(new Float32Array(input)); state.pcmLength += input.length; return; }
+      if (state.manualRecording) return;
+      const chunk = new Float32Array(input); state.preRollChunks.push(chunk); state.preRollLength += chunk.length;
+      const keepSamples = Math.round(state.audioContext.sampleRate * 0.3);
+      while (state.preRollLength > keepSamples && state.preRollChunks.length > 1) state.preRollLength -= state.preRollChunks.shift().length;
+    };
+    source.connect(state.processor); state.processor.connect(state.zeroGain); state.zeroGain.connect(state.audioContext.destination); startVAD();
+    log("Microphone + VAD ready.");
+  }
+
+  function rms() {
+    if (!state.analyser) return 0; const data = new Uint8Array(state.analyser.fftSize); state.analyser.getByteTimeDomainData(data); let sum=0;
+    for (const v of data) { const x=(v-128)/128; sum += x*x; } return Math.sqrt(sum/data.length);
+  }
+
+  function stopLiveCaptions() {
+    clearTimeout(state.captionRestartTimer); state.captionRestartTimer=null;
+    const recognition=state.captionRecognition; state.captionRecognition=null;
+    if(recognition){recognition.onend=null;recognition.onresult=null;try{recognition.stop();}catch(_){}}
+  }
+
+  function startLiveCaptions() {
+    const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!Recognition||state.captionUnavailable)return false;
+    try{
+      const recognition=new Recognition(); state.captionRecognition=recognition;
+      recognition.lang=/^(hi|en)-IN$/i.test(navigator.language||"")?(navigator.language||"en-IN"):"en-IN";
+      recognition.continuous=true; recognition.interimResults=true; recognition.maxAlternatives=1;
+      recognition.onresult=event=>{
+        let finalPart="",interimPart="";
+        for(let i=0;i<event.results.length;i++){
+          const result=event.results[i],word=result?.[0]?.transcript||"";
+          if(result.isFinal)finalPart+=`${word} `;else interimPart+=`${word} `;
+        }
+        state.liveCaptionCurrent=[state.liveCaptionBase,finalPart.trim(),interimPart.trim()].filter(Boolean).join(" ").trim();
+        if(state.liveCaptionCurrent)showSpeechSubtitle(state.liveCaptionCurrent,"live");
+      };
+      recognition.onerror=event=>{
+        if(["not-allowed","service-not-allowed","audio-capture","language-not-supported"].includes(event.error)){
+          state.captionUnavailable=true;log(`Live captions unavailable (${event.error}); the recorded audio will still be transcribed after you finish speaking.`,"yellow");
+        }
+      };
+      recognition.onend=()=>{
+        if(state.captionRecognition!==recognition)return;
+        if(state.liveCaptionCurrent)state.liveCaptionBase=state.liveCaptionCurrent;
+        state.captionRecognition=null;
+        if(state.capture&&!state.captionUnavailable)state.captionRestartTimer=setTimeout(()=>{if(state.capture)startLiveCaptions();},220);
+      };
+      recognition.start();return true;
+    }catch(error){state.captionRecognition=null;log(`Live captions could not start: ${error.message}`,"yellow");return false;}
+  }
+
+  function startVAD() {
+    const tick = () => {
+      const level = rms(); const now = performance.now();
+      const threshold = Math.max(state.speaking ? 0.045 : 0.018, state.noiseFloor * (state.speaking ? 3.2 : 2.8));
+      if(state.capture&&now-state.speechStartedAt>=90000){log("Voice capture reached the 90-second limit; sending the complete recording.","yellow");state.captureLimitUntilSilence=true;finishCapture();}
+      if(state.captureLimitUntilSilence){if(level<=threshold){if(!state.silenceAt)state.silenceAt=now;if(now-state.silenceAt>=500){state.captureLimitUntilSilence=false;state.silenceAt=0;state.speechCandidateAt=0;}}else{state.silenceAt=0;state.speechCandidateAt=0;}state.raf=requestAnimationFrame(tick);return;}
+      const requiredSpeechMs = state.speaking ? 140 : 170;
+      if (!state.speaking && !state.capture && level < 0.04) state.noiseFloor = Math.max(0.003, Math.min(0.025, state.noiseFloor * 0.96 + level * 0.04));
+      if (level > threshold) {
+        if (!state.speechCandidateAt) state.speechCandidateAt = now;
+        if (!state.capture && now - state.speechCandidateAt >= requiredSpeechMs) {
+          const preRoll = state.preRollChunks.slice(); const preRollLength = state.preRollLength;
+          state.capture = true; state.speechStartedAt = now; state.silenceAt = 0; startTurnRecorder();
+          state.liveCaptionBase="";state.liveCaptionCurrent="";state.captionUnavailable=false;
+          showSpeechSubtitle("Listening to your voice…","listening");startLiveCaptions();
+          state.pcmChunks = preRoll; state.pcmLength = preRollLength; state.preRollChunks = []; state.preRollLength = 0;
+          const audio = $("audio"); const wasSpeaking = state.speaking;
+          if (wasSpeaking) {
+            state.speaking = false;
+            if (state.playbackAbort) state.playbackAbort();
+            state.lastBargeLatencyMs = Math.max(0, performance.now() - state.speechCandidateAt);
+            $("bargeLatency").textContent = `${state.lastBargeLatencyMs.toFixed(0)} ms`;
+            state.interruptionCount += 1; $("interruptions").textContent = state.interruptionCount;
+            audio.pause(); audio.currentTime = 0; setFace("interrupt"); status("Barge-in detected — stopping Aiko", "INTERRUPTING");
+            log(`BARGE-IN detected; playback stop latency ${state.lastBargeLatencyMs.toFixed(0)} ms.`, "red");
+            state.serverCancelled = null; $("cancelState").textContent = "cancelling…";
+            void cancelServerTurn(); if (state.abortController) state.abortController.abort();
+          } else { setFace("listening"); status("Listening…", "LISTENING"); }
+          log("User speech detected.");
+        }
+        state.silenceAt = 0;
+      } else {
+        state.speechCandidateAt = 0;
+        if (state.capture) {
+          if (!state.silenceAt) state.silenceAt = now;
+          if (!state.manualRecording && now - state.silenceAt > 1400 && now - state.speechStartedAt > 450) finishCapture();
+        }
+      }
+      state.raf = requestAnimationFrame(tick);
+    };
+    state.raf = requestAnimationFrame(tick);
+  }
+
+  async function cancelServerTurn() {
+    try {
+      const r = await api(`/api/v1/voice/sessions/${state.sessionId}/cancel`, {method:"POST"}); const data = await r.json().catch(()=>({}));
+      state.serverCancelled = !!data.cancelled; $("cancelState").textContent = data.cancelled ? "cancelled ✓" : "no active task";
+      log(data.cancelled ? "SERVER: active voice task cancelled." : "SERVER: no active backend task.", data.cancelled ? "green" : "yellow");
+      await refreshMetrics();
+    } catch (e) { $("cancelState").textContent = "request failed"; log(`Server cancel request failed: ${e.message}`, "red"); }
+  }
+
+  function startTurnRecorder() { state.pcmChunks=[]; state.pcmLength=0; state.discardRecording=false; }
+
+  function encodeWav(chunks,totalLength,sampleRate){
+    const buffer=new ArrayBuffer(44+totalLength*2); const view=new DataView(buffer);
+    const writeString=(o,t)=>{for(let i=0;i<t.length;i++)view.setUint8(o+i,t.charCodeAt(i));}; writeString(0,"RIFF"); view.setUint32(4,36+totalLength*2,true);
+    writeString(8,"WAVE"); writeString(12,"fmt "); view.setUint32(16,16,true); view.setUint16(20,1,true); view.setUint16(22,1,true); view.setUint32(24,sampleRate,true);
+    view.setUint32(28,sampleRate*2,true); view.setUint16(32,2,true); view.setUint16(34,16,true); writeString(36,"data"); view.setUint32(40,totalLength*2,true);
+    let offset=44; for(const chunk of chunks){for(let i=0;i<chunk.length;i++){const sample=Math.max(-1,Math.min(1,chunk[i]));const pcm=sample<0?sample*0x8000:sample*0x7fff;view.setInt16(offset,pcm,true);offset+=2;}} return new Blob([buffer],{type:"audio/wav"});
+  }
+
+  function finishCapture(){
+    if(!state.capture) return; state.capture=false; state.silenceAt=0; stopLiveCaptions(); const chunks=state.pcmChunks; const totalLength=state.pcmLength;
+    state.manualRecording=false; clearTimeout(state.manualRecordTimer); state.manualRecordTimer=null; $("recordVoice").textContent="Record voice";
+    state.pcmChunks=[]; state.pcmLength=0; if(state.discardRecording){status("Stopped","IDLE");return;}
+    const sampleRate=state.audioContext?state.audioContext.sampleRate:48000; const blob=encodeWav(chunks,totalLength,sampleRate); log(`Captured ${blob.size} bytes WAV (${sampleRate} Hz).`);
+    if(blob.size<2000 || totalLength<1000){showSpeechSubtitle("I didn't hear enough to transcribe. Please try again.","recognized");status("Listening — talk to Aiko","LISTENING");setFace("listening");return;}
+    showSpeechSubtitle("Converting your speech to text…","transcribing"); log("Sending audio to Groq STT + acoustic SER…"); status("Processing your turn…","PROCESSING"); setFace("listening"); sendAudio(blob);
+  }
+
+  function recognizeInBrowser(){
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!Recognition) throw new Error("Browser speech recognition is unavailable. Add a Groq API key or use Chrome/Edge speech recognition.");
+    return new Promise((resolve,reject)=>{
+      const rec = new Recognition();
+      rec.lang = "en-IN"; rec.interimResults = false; rec.maxAlternatives = 1;
+      rec.onstart = () => { status("Listening with browser speech recognition…","LISTENING"); setFace("listening"); log("Using browser STT fallback.","yellow"); };
+      rec.onerror = e => reject(new Error(e.error || "Browser speech recognition failed."));
+      rec.onresult = e => { const transcript=e.results?.[0]?.[0]?.transcript || ""; if(transcript)showSpeechSubtitle(transcript,"recognized"); resolve(transcript); };
+      rec.onend = () => {};
+      rec.start();
+    });
+  }
+
+  function showTurn(data, transcript, elapsedMs){
+    $("transcript").textContent=transcript; $("assistantResponse").textContent=data.text;
+    $("requestId").textContent=data.request_id || "unavailable";
+    $("llmUsed").textContent=`${data.llm_provider || "unknown"} / ${data.llm_model || "unknown"}`;
+    $("processingTime").textContent=typeof data.processing_ms === "number" ? `${data.processing_ms.toFixed(0)} ms` : `${elapsedMs.toFixed(0)} ms (browser)`;
+    setBehavior(data.expression); setEmotion(data.user_emotion,data.emotion_confidence,data.emotion_source,data.emotion_top,data.expression);
+    const acoustic=data.emotion_acoustic;
+    $("acousticPrediction").textContent=acoustic ? `${acoustic.emotion} (${(Number(acoustic.confidence||0)*100).toFixed(1)}%)` : "unavailable";
+    const lexical=data.emotion_text;
+    $("lexicalPrediction").textContent=lexical ? `${lexical.emotion} (${(Number(lexical.confidence||0)*100).toFixed(1)}%)` : "unavailable";
+    $("emotionPolicy").textContent=data.emotion_policy || "unavailable";
+    $("sessionId").textContent=state.sessionId || "unavailable";
+  }
+
+  async function sendTextTurn(transcript){
+    const epoch=state.sessionEpoch;
+    const started=performance.now();
+    const r=await api(`/api/v1/voice/sessions/${state.sessionId}/turns`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({transcript})});
+    if(!r.ok) throw new Error(`HTTP ${r.status}: ${(await r.text()).slice(0,800)}`);
+    const data=await r.json();
+    if(epoch!==state.sessionEpoch)return;
+    showTurn(data,transcript,performance.now()-started);
+    log(`Text input: "${transcript}"`); log(`Emotion: ${data.user_emotion} (${(Number(data.emotion_confidence||0)*100).toFixed(1)}%) via ${data.emotion_source}`);
+    log(`LLM: ${data.llm_provider}/${data.llm_model}; ${Number(data.processing_ms||0).toFixed(0)} ms`); log(`Aiko: "${data.text}"`);
+    await synthesizeAndPlay(data.text,data.expression.voice_style);
+  }
+
+  async function submitText(){
+    const transcript=$("textInput").value.trim();
+    if(!transcript){$("inputMessage").textContent="Type a message before sending.";return;}
+    if(state.busy)return;
+    state.busy=true; $("sendText").disabled=true; $("sendAudioFile").disabled=true; $("inputMessage").textContent="Processing text…";
+    try{await sendTextTurn(transcript);$("textInput").value="";$("inputMessage").textContent="Response ready.";}
+    catch(e){$("inputMessage").textContent=`Request failed: ${e.message}`;log(`Text turn failed: ${e.message}`,"red");status("Text request failed","ERROR");}
+    finally{state.busy=false;$("sendText").disabled=false;$("sendAudioFile").disabled=!$("audioFile").files.length;}
+  }
+
+  async function sendAudio(blob,contentType="audio/wav",inputType="microphone"){
+    const epoch=state.sessionEpoch;
+    state.busy=true; state.speaking=false; $("sendText").disabled=true; $("recordVoice").disabled=true;
+    const controller=new AbortController(); state.abortController=controller;
+    const started=performance.now();
+    try{
+      const r=await api(`/api/v1/voice/sessions/${state.sessionId}/audio-stream-turn`,{method:"POST",headers:{"Content-Type":contentType},body:blob,signal:controller.signal});
+      const decodeHeader = (value) => {
+        if (!value) return "";
+        try { return decodeURIComponent(value); } catch (_) { return value; }
+      };
+      const transcript=decodeHeader(r.headers.get("X-Voice-Transcript")||""); const responseText=decodeHeader(r.headers.get("X-Voice-Response")||"");
+      const ttsFallback=r.headers.get("X-Voice-TTS-Fallback")||"";
+      const requestId=r.headers.get("X-Voice-Request-Id")||"unavailable";
+      const llmProvider=r.headers.get("X-Voice-LLM-Provider")||"unknown";
+      const llmModel=r.headers.get("X-Voice-LLM-Model")||"unknown";
+      const processingMs=Number(r.headers.get("X-Voice-Processing-Ms"));
+      const ttsProvider=r.headers.get("X-Voice-TTS-Provider")||"unknown";
+      const acousticEmotion=r.headers.get("X-Voice-Acoustic-Emotion")||"";
+      const acousticConfidence=r.headers.get("X-Voice-Acoustic-Confidence");
+      const lexicalEmotion=r.headers.get("X-Voice-Lexical-Emotion")||"";
+      const lexicalConfidence=r.headers.get("X-Voice-Lexical-Confidence");
+      const emotionPolicy=decodeHeader(r.headers.get("X-Voice-Emotion-Policy")||"");
+      if(!r.ok){
+        let detail=""; try{detail=await r.text();}catch(_){}
+        throw new Error(`HTTP ${r.status}: ${(detail||"voice request failed").slice(0,800)}`);
+      }
+      if(epoch!==state.sessionEpoch)return false;
+      showSpeechSubtitle(transcript || "I couldn't catch that. Please try again.","recognized");
+      const expr={emotion:r.headers.get("X-Voice-Emotion"),voice_style:r.headers.get("X-Voice-Voice-Style"),expression:r.headers.get("X-Voice-Expression"),gesture:r.headers.get("X-Voice-Gesture"),gaze:r.headers.get("X-Voice-Gaze"),lip_sync:r.headers.get("X-Voice-Lip-Sync")};
+      const userEmotion=r.headers.get("X-Voice-User-Emotion")||"neutral"; const confidence=r.headers.get("X-Voice-Emotion-Confidence"); const source=r.headers.get("X-Voice-Emotion-Source")||"unknown";
+      const top=(r.headers.get("X-Voice-Emotion-Top")||"").split(";").filter(Boolean).map(item=>{const [emotion,score]=item.split(":");return {emotion,confidence:Number(score||0)}});
+      $("transcript").textContent=transcript; $("assistantResponse").textContent=responseText;
+      $("requestId").textContent=requestId; $("llmUsed").textContent=`${llmProvider} / ${llmModel}`;
+      $("processingTime").textContent=processingMs ? `${processingMs.toFixed(0)} ms backend; ${(performance.now()-started).toFixed(0)} ms to audio` : `${(performance.now()-started).toFixed(0)} ms to audio`;
+      setBehavior(expr); setEmotion(userEmotion,confidence,source,top,expr); $("cancelState").textContent="—";
+      $("acousticPrediction").textContent=acousticEmotion ? `${decodeHeader(acousticEmotion)} (${acousticConfidence ? (Number(acousticConfidence)*100).toFixed(1)+"%" : "n/a"})` : "unavailable";
+      $("lexicalPrediction").textContent=lexicalEmotion ? `${decodeHeader(lexicalEmotion)} (${lexicalConfidence ? (Number(lexicalConfidence)*100).toFixed(1)+"%" : "n/a"})` : "unavailable";
+      $("emotionPolicy").textContent=emotionPolicy || "unavailable";
+      $("sessionId").textContent=state.sessionId || "unavailable";
+      log(`${inputType} STT: "${transcript}"`); log(`Emotion: ${userEmotion} (${confidence ? (Number(confidence)*100).toFixed(1)+"%" : "n/a"}) via ${source}`); log(`LLM: ${llmProvider}/${llmModel}`); log(`Aiko: "${responseText}"`);
+      log(`TTS provider: ${ttsFallback==="unavailable"?"unavailable":ttsProvider}`);
+      if(ttsFallback==="unavailable"){
+        log("Configured voice service unavailable; no alternate voice was substituted.","red");
+        status("Configured voice unavailable — retry in a moment.","VOICE ERROR");
+      } else {
+        await playStream(r).catch(playbackError=>{
+          if(playbackError.name==="AbortError") return;
+          log(`Audio playback issue: ${playbackError.message}`,"yellow");
+          status("Reply is ready in the configured voice. Use the audio player or download link.","AUDIO READY");
+        });
+      }
+      return true;
+    }catch(e){
+      if(e.name==="AbortError") return;
+      log(`Voice turn failed: ${e.message}`,"red");
+      // Recover from missing STT/network configuration without killing the demo.
+      // The browser recognition path is clearly labelled in the event log.
+    if(inputType==="microphone" && /HTTP (4\d\d|5\d\d)/.test(e.message)){
+        try{
+          showSpeechSubtitle("Trying browser speech recognition…","transcribing");
+          const transcript = await recognizeInBrowser();
+          showSpeechSubtitle(transcript || "I couldn't catch that. Please try again.","recognized");
+          if(transcript.trim()) await sendTextTurn(transcript.trim());
+          else throw new Error("Browser STT returned an empty transcript.");
+          return;
+        }catch(fallbackError){
+          log(`Browser STT fallback failed: ${fallbackError.message}`,"red");
+        }
+      }
+      showSpeechSubtitle("Transcription couldn't finish. Please try again.","recognized");
+      status(`Voice turn failed: ${e.message.slice(0,180)}`); $("inputMessage").textContent=`Voice turn failed: ${e.message.slice(0,300)}`; setFace("idle");
+      return false;
+    }finally{state.abortController=null;state.busy=false;$("sendText").disabled=false;$("recordVoice").disabled=false;}
+  }
+
+  async function playStream(response){
+    status("Aiko is speaking…","SPEAKING"); setFace("speaking");
+    const audio=$("audio");
+    if(state.audioUrl)URL.revokeObjectURL(state.audioUrl);
+    if(state.audioDownloadUrl)URL.revokeObjectURL(state.audioDownloadUrl);
+    state.audioUrl=null; state.audioDownloadUrl=null;
+    if(typeof HTMLMediaElement==="undefined")throw new Error("This preview cannot play audio. Use the audio download link.");
+    const chunks=[]; const reader=response.body?.getReader();
+    let mediaSource=null; let sourceBuffer=null; let streamPlayback=null; let firstChunk=true;
+    const canStream=!!reader && typeof MediaSource!=="undefined" && MediaSource.isTypeSupported("audio/mpeg");
+    const monitorPlayback=()=>new Promise((resolve,reject)=>{
+      let finished=false; let timer;
+      const cleanup=()=>{clearTimeout(timer);audio.removeEventListener("ended",onEnded);audio.removeEventListener("error",onError);if(state.playbackAbort===interrupt)state.playbackAbort=null;};
+      const done=error=>{if(finished)return;finished=true;cleanup();error?reject(error):resolve();};
+      const onEnded=()=>done();
+      const onError=()=>done(new Error("Audio playback failed in this browser. Use the matching-voice download link."));
+      const interrupt=()=>done(new DOMException("Playback interrupted by the user.","AbortError"));
+      state.playbackAbort=interrupt;
+      audio.addEventListener("ended",onEnded,{once:true}); audio.addEventListener("error",onError,{once:true});
+      timer=setTimeout(()=>done(new Error("Audio playback timed out. Use the matching-voice download link.")),60000);
+      if(audio.ended){done();return;}
+      attachOutputAnalyser();
+      if (state.outputAudioContext && state.outputAudioContext.state === "suspended") state.outputAudioContext.resume().catch(() => {});
+      audio.play().catch(error=>done(new Error(`Browser blocked audio playback: ${error.message}`)));
+    });
+    if(canStream){
+      try{
+        mediaSource=new MediaSource(); state.audioUrl=URL.createObjectURL(mediaSource); audio.src=state.audioUrl; audio.load();
+        await new Promise((resolve,reject)=>{
+          const timer=setTimeout(()=>reject(new Error("Audio stream setup timed out.")),5000);
+          mediaSource.addEventListener("sourceopen",()=>{clearTimeout(timer);try{sourceBuffer=mediaSource.addSourceBuffer("audio/mpeg");resolve();}catch(error){reject(error);}},{once:true});
+          mediaSource.addEventListener("error",()=>{clearTimeout(timer);reject(new Error("Audio stream is unsupported."));},{once:true});
+        });
+      }catch(error){
+        if(state.audioUrl)URL.revokeObjectURL(state.audioUrl); state.audioUrl=null; mediaSource=null; sourceBuffer=null;
+      }
+    }
+    if(reader){
+      while(true){
+        const {done,value}=await reader.read(); if(done)break;
+        if(!value?.byteLength)continue;
+        chunks.push(value);
+        if(sourceBuffer){
+          try{
+            await new Promise((resolve,reject)=>{
+              const onUpdate=()=>{cleanup();resolve();}; const onBufferError=()=>{cleanup();reject(new Error("Audio chunk could not be decoded."));};
+              const cleanup=()=>{sourceBuffer.removeEventListener("updateend",onUpdate);sourceBuffer.removeEventListener("error",onBufferError);};
+              sourceBuffer.addEventListener("updateend",onUpdate,{once:true}); sourceBuffer.addEventListener("error",onBufferError,{once:true});
+              try{sourceBuffer.appendBuffer(value);}catch(error){cleanup();reject(error);}
+            });
+            if(firstChunk){firstChunk=false;streamPlayback=monitorPlayback();streamPlayback.catch(()=>{});}
+          }catch(_){if(state.playbackAbort)state.playbackAbort();sourceBuffer=null;}
+        }
+      }
+    }else{
+      const blob=await response.blob(); if(blob.size)chunks.push(blob);
+    }
+    const blob=new Blob(chunks,{type:"audio/mpeg"});
+    if(!blob.size)throw new Error("The voice provider returned an empty audio response.");
+    state.audioDownloadUrl=URL.createObjectURL(blob); $("audioDownload").href=state.audioDownloadUrl; $("audioDownload").hidden=false;
+    if(sourceBuffer&&mediaSource&&mediaSource.readyState==="open"){
+      try{mediaSource.endOfStream();}catch(_){sourceBuffer=null;}
+    }
+    if(!sourceBuffer){
+      if(state.audioUrl)URL.revokeObjectURL(state.audioUrl);
+      state.audioUrl=URL.createObjectURL(blob); audio.src=state.audioUrl; audio.load();
+      streamPlayback=monitorPlayback();
+    }
+    await streamPlayback;
+    state.speaking=false; status("Listening — talk to Aiko","LISTENING"); setFace("listening");
+  }
+
+  async function startConversation(){
+    $("play").disabled=true; $("stop").disabled=false; try{await ensureMic();
+      const r=await api(`/api/v1/voice/sessions/${state.sessionId}/turns`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({transcript:"Start the conversation by warmly greeting me as Aiko, briefly explain that you can adapt to my emotional tone, and mention that I can interrupt you while you speak. Keep it natural and under 2 sentences."})});
+      if(!r.ok)throw new Error(await r.text()); const data=await r.json(); $("transcript").textContent="Start conversation"; $("assistantResponse").textContent=data.text; $("requestId").textContent=data.request_id||"unavailable"; $("sessionId").textContent=state.sessionId||"unavailable"; $("llmUsed").textContent=`${data.llm_provider||"unknown"} / ${data.llm_model||"unknown"}`; $("processingTime").textContent=typeof data.processing_ms==="number"?`${data.processing_ms.toFixed(0)} ms`:"—"; setBehavior(data.expression);
+      setEmotion(data.user_emotion,data.emotion_confidence,data.emotion_source,data.emotion_top,data.expression); log(`Aiko: "${data.text}"`); await synthesizeAndPlay(data.text,data.expression.voice_style);
+    }catch(e){log(`Start failed: ${e.message}`,"red");status(`Start failed: ${e.message}`,"ERROR");setFace("idle");$("play").disabled=false;$("stop").disabled=true;}
+  }
+
+  async function toggleManualRecording(){
+    if(state.busy)return;
+    if(state.manualRecording){finishCapture();return;}
+    if(state.capture){finishCapture();return;}
+    try{
+      await ensureMic();
+      startTurnRecorder(); state.capture=true; state.manualRecording=true; state.speechStartedAt=performance.now();
+      state.liveCaptionBase="";state.liveCaptionCurrent="";state.captionUnavailable=false;
+      showSpeechSubtitle("Listening to your voice…","listening");startLiveCaptions();
+      $("recordVoice").textContent="Finish & send"; $("inputMessage").textContent="Recording—click Finish & send when you are done (up to 90 seconds).";
+      status("Recording—speak now","RECORDING"); setFace("listening"); log("Manual microphone recording started.","green");
+      state.manualRecordTimer=setTimeout(()=>{if(state.manualRecording){log("Recording reached the 90-second limit.","yellow");state.captureLimitUntilSilence=true;finishCapture();}},90000);
+    }catch(error){$("inputMessage").textContent=`Microphone unavailable: ${error.message}`;status("Microphone permission or device issue","MIC ERROR");log(`Microphone start failed: ${error.message}`,"red");}
+  }
+
+  async function synthesizeAndPlay(text,emotion){
+    status("Aiko is preparing a response…","THINKING");
+    const controller=new AbortController(); state.abortController=controller;
+    const r=await api("/api/v1/voice/synthesis/stream",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,emotion}),signal:controller.signal});
+    try{
+      if(!r.ok)throw new Error(`TTS returned HTTP ${r.status}`);
+      log(`TTS provider: ${r.headers.get("X-Voice-TTS-Provider")||"browser fallback"}`);
+      const fallback=r.headers.get("X-Voice-TTS-Fallback")||"";
+      if(fallback==="unavailable"){
+        status("Configured voice unavailable — retry in a moment.","VOICE ERROR");
+        log("Configured voice service unavailable; no alternate voice was substituted.","red");
+        return;
+      }
+      await playStream(r);
+    }catch(error){
+      if(error.name==="AbortError")return;
+      log(`Audio playback issue: ${error.message}`,"yellow");
+      if($("audioDownload").href)status("Reply is ready in the configured voice. Use the audio player or download link.","AUDIO READY");
+      else {status("Configured voice failed. Retry or check the backend status.","VOICE ERROR");throw error;}
+    }finally{state.abortController=null;state.speaking=false;$("play").disabled=false;$("stop").disabled=true;}
+  }
+
+  async function uploadSelectedAudio(){
+    const file=$("audioFile").files[0];
+    if(!file){$("inputMessage").textContent="Choose an audio file first.";return;}
+    const supported=/\.(wav|mp3|ogg|webm)$/i.test(file.name) || ["audio/wav","audio/x-wav","audio/mpeg","audio/ogg","audio/webm"].includes(file.type);
+    if(!supported){$("inputMessage").textContent="Supported formats: WAV, MP3, OGG, and WebM.";return;}
+    if(file.size===0){$("inputMessage").textContent="The selected audio file is empty.";return;}
+    if(file.size>10*1024*1024){$("inputMessage").textContent="Audio files must be 10 MB or smaller.";return;}
+    const objectUrl=URL.createObjectURL(file); const probe=new Audio(); probe.preload="metadata"; probe.src=objectUrl;
+    try{await new Promise((resolve,reject)=>{probe.onloadedmetadata=resolve;probe.onerror=()=>reject(new Error("This browser cannot decode the selected audio file."));});
+      if(!Number.isFinite(probe.duration)||probe.duration<=0)throw new Error("The audio duration could not be read.");
+      if(probe.duration>180)throw new Error("Audio files must be three minutes or shorter.");
+    }catch(e){URL.revokeObjectURL(objectUrl);$("inputMessage").textContent=e.message;return;}
+    URL.revokeObjectURL(objectUrl);
+    state.busy=true; $("sendText").disabled=true; $("sendAudioFile").disabled=true; $("inputMessage").textContent=`Uploading ${file.name} (${probe.duration.toFixed(1)} seconds)…`;
+    const contentType=file.type || ({wav:"audio/wav",mp3:"audio/mpeg",ogg:"audio/ogg",webm:"audio/webm"}[file.name.split(".").pop().toLowerCase()] || "application/octet-stream");
+    try{const ok=await sendAudio(file,contentType,"audio file");$("inputMessage").textContent=ok?"Audio processed.":"Audio processing failed; see the event log.";}
+    catch(e){$("inputMessage").textContent=`Upload failed: ${e.message}`;log(`Audio upload failed: ${e.message}`,"red");status("Audio upload failed","ERROR");}
+    finally{state.busy=false;$("sendText").disabled=false;$("sendAudioFile").disabled=false;}
+  }
+
+  async function resetSession(){
+    state.sessionEpoch+=1;
+    state.capture=false;state.captureLimitUntilSilence=false;state.liveCaptionBase="";state.liveCaptionCurrent="";stopLiveCaptions();showSpeechSubtitle("");
+    if(state.abortController)state.abortController.abort();
+    if("speechSynthesis" in window)window.speechSynthesis.cancel();
+    const audio=$("audio");audio.pause();audio.currentTime=0;audio.removeAttribute("src");audio.load();
+    if(state.audioUrl){URL.revokeObjectURL(state.audioUrl);state.audioUrl=null;}
+    if(state.audioDownloadUrl){URL.revokeObjectURL(state.audioDownloadUrl);state.audioDownloadUrl=null;}
+    if(state.sessionId)await cancelServerTurn();
+    const r=await api("/api/v1/voice/sessions",{method:"POST"});
+    if(!r.ok)throw new Error(`Session reset failed (${r.status}).`);
+    state.sessionId=(await r.json()).session_id;state.speaking=false;state.capture=false;state.manualRecording=false;state.captureLimitUntilSilence=false;clearTimeout(state.manualRecordTimer);state.pcmChunks=[];state.pcmLength=0;state.preRollChunks=[];state.preRollLength=0;
+    $("transcript").textContent="No turn yet.";$("assistantResponse").textContent="No response yet.";$("requestId").textContent="—";$("sessionId").textContent=state.sessionId;$("llmUsed").textContent="—";$("processingTime").textContent="—";
+    $("acousticPrediction").textContent="—";$("lexicalPrediction").textContent="—";$("emotionPolicy").textContent="—";
+    $("audioDownload").hidden=true;$("audioDownload").removeAttribute("href");
+    $("textInput").value="";$("audioFile").value="";$("sendAudioFile").disabled=true;
+    setBehavior({});setEmotion("—",null,"—",[]);$("interruptions").textContent="0";$("bargeLatency").textContent="—";$("cancelState").textContent="—";$("inputMessage").textContent="New session ready.";
+    status("Ready for a new session","READY");setFace("idle");log("New session created; prior output cleared.","green");
+  }
+
+  $("warmup").addEventListener("click", warmupEmotion); $("refresh").addEventListener("click", refreshMetrics); $("play").addEventListener("click", startConversation);
+  $("sendText").addEventListener("click",submitText); $("recordVoice").addEventListener("click",()=>void toggleManualRecording());
+  $("textInput").addEventListener("keydown",event=>{if(event.key==="Enter"&&!event.shiftKey&&!event.isComposing){event.preventDefault();void submitText();}});
+  $("chooseAudio").addEventListener("click",()=>$("audioFile").click());
+  $("audioFile").addEventListener("change",()=>{$("sendAudioFile").disabled=!$("audioFile").files.length;$("inputMessage").textContent=$("audioFile").files[0]?.name||"";});
+  $("sendAudioFile").addEventListener("click",()=>void uploadSelectedAudio());
+  $("reset").addEventListener("click",()=>resetSession().catch(e=>{$("inputMessage").textContent=e.message;log(e.message,"red");}));
+  $("stop").addEventListener("click",()=>{
+    if("speechSynthesis" in window) window.speechSynthesis.cancel();
+    if(state.playbackAbort)state.playbackAbort();
+    $("audio").pause(); $("audio").currentTime=0; if(state.abortController)state.abortController.abort();
+    // Keep the microphone VAD loop alive so another interaction can start after Stop.
+    state.capture=false;state.manualRecording=false;state.captureLimitUntilSilence=false;stopLiveCaptions();clearTimeout(state.manualRecordTimer);state.manualRecordTimer=null;$("recordVoice").textContent="Record voice";state.speaking=false;state.speechCandidateAt=0;state.discardRecording=true;state.pcmChunks=[];state.pcmLength=0;
+    showSpeechSubtitle("");
+    void cancelServerTurn();status("Stopped","IDLE");setFace("idle");$("play").disabled=false;$("stop").disabled=true;
+  });
+  $("audio").addEventListener("play",()=>{
+    state.speaking=true; setFace("speaking");
+    $("play").disabled=true; $("stop").disabled=false;
+  });
+  $("audio").addEventListener("pause",()=>{
+    state.speaking=false;
+    // Do not overwrite the interruption state while VAD is capturing the new turn.
+    if (!state.capture && state.visualMode === "speaking" && !$("audio").ended) {
+      status("Listening — talk to the assistant", "LISTENING"); setFace("listening");
+      $("play").disabled=false; $("stop").disabled=true;
+    }
+  });
+  $("audio").addEventListener("ended",()=>{
+    state.speaking=false;
+    if(state.visualMode === "speaking"){status("Listening — talk to the assistant","LISTENING");setFace("listening");}
+    $("play").disabled=false; $("stop").disabled=true;
+  });
+  $("audio").addEventListener("error",()=>{$("play").disabled=false;$("stop").disabled=true;});
+  $("consoleToggle").addEventListener("click",()=>{
+    const panel = $("telemetry"); panel.classList.toggle("is-collapsed");
+    const open = !panel.classList.contains("is-collapsed");
+    $("consoleToggle").setAttribute("aria-expanded", String(open));
+    $("consoleToggle").textContent = open ? "HIDE ACTIVITY" : "LIVE ACTIVITY";
+  });
+  if (window.matchMedia("(max-width: 760px)").matches) {
+    $("telemetry").classList.add("is-collapsed");
+    $("consoleToggle").setAttribute("aria-expanded", "false");
+    $("consoleToggle").textContent = "LIVE ACTIVITY";
+  }
+  applyMood("neutral"); setFace("idle"); initOrbLiquid(); initLiquid(); startNaturalBlink();
+  init().catch(e=>{log(`Initialization failed: ${e.message}`,"red");status("Backend demo initialization failed","ERROR");});
+})();
+
+</script>
+</body>
+</html>

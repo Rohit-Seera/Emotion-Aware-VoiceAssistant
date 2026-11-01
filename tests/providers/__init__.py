@@ -1,0 +1,1 @@
+"""Provider tests for Emotion Aware Voice Assistant."""

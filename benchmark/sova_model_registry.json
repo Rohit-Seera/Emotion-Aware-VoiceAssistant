@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "paper": "SOVA-Bench Table 3 and Table 4",
+  "models": [
+    {
+      "id": "mini_omni",
+      "name": "Mini-Omni",
+      "llm_size": "0.5B",
+      "adapter": "mini_omni_native_bridge",
+      "official_repo": "https://github.com/gpt-omni/mini-omni",
+      "default_base_url": "http://127.0.0.1:60808",
+      "requires": [
+        "official Mini-Omni repository in its own Python environment",
+        "official checkpoint with lit_model.pth",
+        "CUDA GPU and official dependencies",
+        "JSONL bridge command"
+      ],
+      "paper_support": {
+        "knowledge_qa": true,
+        "speech_recognition": true,
+        "spoken_qa_multiple_choice": false,
+        "spoken_qa_open_ended": false,
+        "emotion_recognition": true,
+        "gender_recognition": true,
+        "age_recognition": true,
+        "generation_consistency": true,
+        "generation_semantic": true,
+        "generation_acoustic": true
+      },
+      "bridge_env": "SOVA_MINI_OMNI_BRIDGE_CMD"
+    },
+    {
+      "id": "mini_omni2",
+      "name": "Mini-Omni2",
+      "llm_size": "0.5B",
+      "adapter": "mini_omni2_http",
+      "official_repo": "https://github.com/gpt-omni/mini-omni2",
+      "default_base_url": "http://127.0.0.1:60809",
+      "requires": [
+        "official Mini-Omni2 server",
+        "GPU/model checkpoint",
+        "Local Whisper-large-v3 transcription for response-audio consistency scoring (faster-whisper and local compute required)"
+      ],
+      "paper_support": {
+        "knowledge_qa": true,
+        "speech_recognition": true,
+        "spoken_qa_multiple_choice": false,
+        "spoken_qa_open_ended": false,
+        "emotion_recognition": true,
+        "gender_recognition": true,
+        "age_recognition": true,
+        "generation_consistency": true,
+        "generation_semantic": true,
+        "generation_acoustic": true
+      }
+    },
+    {
+      "id": "moshi",
+      "name": "Moshi",
+      "llm_size": "7B",
+      "adapter": "jsonl_bridge",
+      "bridge_env": "SOVA_MOSHI_BRIDGE_CMD",
+      "official_repo": "https://github.com/kyutai-labs/moshi",
+      "requires": [
+        "official Moshi runtime",
+        "Linux/CUDA GPU recommended; official PyTorch path documents 24GB memory",
+        "JSONL batch bridge command"
+      ],
+      "paper_support": {
+        "knowledge_qa": true,
+        "speech_recognition": false,
+        "spoken_qa_multiple_choice": false,
+        "spoken_qa_open_ended": false,
+        "emotion_recognition": false,
+        "gender_recognition": false,
+        "age_recognition": false,
+        "generation_consistency": true,
+        "generation_semantic": true,
+        "generation_acoustic": true
+      }
+    },
+    {
+      "id": "llama_omni",
+      "name": "LLaMA-Omni",
+      "llm_size": "8B",
+      "adapter": "llama_omni_cli",
+      "official_repo": "https://github.com/ictnlp/LLaMA-Omni",
+      "requires": [
+        "official LLaMA-Omni repository",
+        "model weights",
+        "Whisper-large-v3 assets",
+        "HiFi-GAN vocoder assets",
+        "CUDA/Linux environment recommended"
+      ],
+      "paper_support": {
+        "knowledge_qa": true,
+        "speech_recognition": true,
+        "spoken_qa_multiple_choice": true,
+        "spoken_qa_open_ended": true,
+        "emotion_recognition": true,
+        "gender_recognition": true,
+        "age_recognition": true,
+        "generation_consistency": true,
+        "generation_semantic": true,
+        "generation_acoustic": true
+      }
+    },
+    {
+      "id": "freeze_omni",
+      "name": "Freeze-Omni",
+      "llm_size": "7B",
+      "adapter": "jsonl_bridge",
+      "bridge_env": "SOVA_FREEZE_OMNI_BRIDGE_CMD",
+      "official_repo": "https://github.com/VITA-MLLM/Freeze-Omni",
+      "requires": [
+        "official Freeze-Omni runtime and checkpoints",
+        "compatible CUDA environment",
+        "JSONL batch bridge command"
+      ],
+      "paper_support": {
+        "knowledge_qa": true,
+        "speech_recognition": true,
+        "spoken_qa_multiple_choice": false,
+        "spoken_qa_open_ended": false,
+        "emotion_recognition": true,
+        "gender_recognition": true,
+        "age_recognition": true,
+        "generation_consistency": true,
+        "generation_semantic": true,
+        "generation_acoustic": true
+      }
+    },
+    {
+      "id": "glm4_voice",
+      "name": "GLM-4-Voice",
+      "llm_size": "9B backbone (paper table lists 7B)",
+      "adapter": "jsonl_bridge",
+      "bridge_env": "SOVA_GLM4_VOICE_BRIDGE_CMD",
+      "official_repo": "https://github.com/zai-org/GLM-4-Voice",
+      "requires": [
+        "official GLM-4-Voice tokenizer, 9B model and decoder",
+        "official model server",
+        "JSONL batch bridge command"
+      ],
+      "paper_support": {
+        "knowledge_qa": true,
+        "speech_recognition": true,
+        "spoken_qa_multiple_choice": false,
+        "spoken_qa_open_ended": false,
+        "emotion_recognition": true,
+        "gender_recognition": true,
+        "age_recognition": true,
+        "generation_consistency": true,
+        "generation_semantic": true,
+        "generation_acoustic": true
+      },
+      "paper_support_splits": {
+        "speech_recognition": [
+          "test-clean",
+          "test-other"
+        ]
+      }
+    },
+    {
+      "id": "weings_ai",
+      "name": "Emotional Voice Assistant",
+      "llm_size": "configured runtime",
+      "adapter": "weings_http",
+      "default_base_url": "http://127.0.0.1:8000",
+      "requires": [
+        "running the Emotional Voice Assistant backend (current Emotion Aware Voice Assistant app)",
+        "development demo token or SOVA_WEINGS_API_TOKEN",
+        "Configured STT/TTS backend; the user's existing GPT-OSS 120B remains the configured LLM where enabled"
+      ],
+      "paper_support": {
+        "knowledge_qa": true,
+        "speech_recognition": true,
+        "spoken_qa_multiple_choice": true,
+        "spoken_qa_open_ended": true,
+        "emotion_recognition": true,
+        "gender_recognition": false,
+        "age_recognition": false,
+        "generation_consistency": true,
+        "generation_semantic": true,
+        "generation_acoustic": true
+      }
+    }
+  ],
+  "notes": [
+    "Runnable benchmark registry contains the six open-source speech models listed in SOVA-Bench Table 3, plus the proposed Emotional Voice Assistant.",
+    "Cascade (Whisper-large-v3 + GPT-4o-mini) remains only as a published-paper reference; it is excluded from live runs because GPT-4o-mini requires a paid API. No replacement model is substituted as the paper Cascade.",
+    "GPT-OSS 120B is the user’s existing Emotion Aware Voice Assistant LLM and can be used as the QA/semantic judge via the user’s already configured Groq access. It is not a SOVA-Bench baseline; record it as judge model and do not claim exact reproduction of the authors’ unspecified GPTEval prompts.",
+    "paper_support indicates whether Table 4 reports a metric, not whether a run has been executed.",
+    "Published Table 4 values are stored in paper_reference_table4.json and are not measurements from this code.",
+    "Model weights and official environments are not bundled. Each upstream open-source model needs its own compatible runtime/checkpoint, and hardware may be a limiting factor."
+  ],
+  "excluded_models": [
+    {
+      "id": "cascade",
+      "name": "Cascade (published paper reference only)",
+      "status": "excluded_from_live_runs_paid_component",
+      "exclusion_reason": "The supplied paper defines Cascade as Whisper-large-v3 + GPT-4o-mini. The GPT-4o-mini stage requires the paid OpenAI API; no replacement LLM is substituted.",
+      "published_table4_reference_retained": true,
+      "reference_location": "benchmark/paper_reference_table4.json"
+    }
+  ]
+}

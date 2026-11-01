@@ -1,0 +1,98 @@
+{
+  "name": "SOVA-Bench",
+  "paper": "SOVA-Bench: Benchmarking the Speech Conversation Ability for LLM-based Voice Assistant",
+  "arxiv": "2506.02457v1",
+  "paper_date": "2025-06-03",
+  "paper_total_tasks": 8,
+  "tasks": [
+    {
+      "task_id": "knowledge_qa",
+      "dimension": "Knowledge",
+      "dataset": "TriviaQA unfiltered dev",
+      "paper_instances": 6840,
+      "input_modality": ["speech"],
+      "paper_metric": "GPT-evaluated accuracy",
+      "direction": "higher",
+      "source_in_zip": "benchmark/datasets/sova_triviaqa_6840.json",
+      "source_limitations": "Contains text question/answer records, not the synthesized speech inputs used by the paper."
+    },
+    {
+      "task_id": "speech_recognition",
+      "dimension": "Recognition",
+      "dataset": "LibriSpeech dev-clean, dev-other, test-clean, test-other",
+      "paper_instances": null,
+      "input_modality": ["speech"],
+      "paper_metric": "WER",
+      "direction": "lower",
+      "source_in_zip": "benchmark/sova_librispeech_500.py",
+      "source_limitations": "The included script evaluates a 500-example test subset and directly calls Groq Whisper; it does not run all four official splits through the Weings API."
+    },
+    {
+      "task_id": "spoken_qa_multiple_choice",
+      "dimension": "Linguistic understanding",
+      "dataset": "LibriSQA Part II",
+      "paper_instances": 2619,
+      "input_modality": ["text", "speech"],
+      "paper_metric": "Accuracy",
+      "direction": "higher",
+      "source_in_zip": "benchmark/sova_librisqa_500.py",
+      "source_limitations": "The included script runs at most 500 examples and uses a separate STT/LLM chain; the current voice API does not accept simultaneous question text and passage audio in a single turn."
+    },
+    {
+      "task_id": "spoken_qa_open_ended",
+      "dimension": "Linguistic understanding",
+      "dataset": "Spoken SQuAD",
+      "paper_instances": 3243,
+      "input_modality": ["text", "speech"],
+      "paper_metric": "GPT-evaluated accuracy",
+      "direction": "higher",
+      "source_in_zip": "benchmark/sova_spoken_squad_500.py",
+      "source_limitations": "The saved run has 16 successful records for a target of 500; that result is not a reliable full benchmark estimate."
+    },
+    {
+      "task_id": "emotion_recognition",
+      "dimension": "Paralinguistic understanding",
+      "dataset": "IEMOCAP",
+      "paper_instances": 5819,
+      "input_modality": ["text", "speech"],
+      "paper_metric": "GPT-evaluated accuracy; answer rate and conditioned accuracy also analyzed",
+      "direction": "higher",
+      "source_in_zip": "app/engines/emotion/acoustic.py",
+      "source_limitations": "The app's current SER checkpoint is a public 4-class SUPERB model, while the paper uses a 5-choice IEMOCAP task. The text-only pilot does not measure acoustic emotion recognition. IEMOCAP access/licensing and label mapping must be handled explicitly."
+    },
+    {
+      "task_id": "gender_recognition",
+      "dimension": "Paralinguistic understanding",
+      "dataset": "Common Voice with speaker metadata",
+      "paper_instances": 2469,
+      "input_modality": ["text", "speech"],
+      "paper_metric": "GPT-evaluated accuracy; answer rate and conditioned accuracy also analyzed",
+      "direction": "higher",
+      "source_in_zip": "benchmark/sova_age_gender_500.py",
+      "source_limitations": "Included script evaluates a separate pretrained age/gender model on a 500-example sampled subset, not the Weings voice pipeline."
+    },
+    {
+      "task_id": "age_recognition",
+      "dimension": "Paralinguistic understanding",
+      "dataset": "Common Voice with speaker metadata",
+      "paper_instances": 2511,
+      "input_modality": ["text", "speech"],
+      "paper_metric": "GPT-evaluated accuracy; answer rate and conditioned accuracy also analyzed",
+      "direction": "higher",
+      "source_in_zip": "benchmark/sova_age_gender_500.py",
+      "source_limitations": "Included script evaluates a separate pretrained age/gender model with custom age-bin mapping; the mapping must be checked against paper labels before comparison."
+    },
+    {
+      "task_id": "speech_generation",
+      "dimension": "Generation",
+      "dataset": "Alpaca cleaned subset",
+      "paper_instances": 3745,
+      "input_modality": ["speech output"],
+      "paper_metric": "Consistency WER, GPTScore semantic quality, UTMOSv2 acoustic quality",
+      "direction": "consistency lower; semantic/acoustic higher",
+      "source_in_zip": "benchmark/audio_eval.py, benchmark/semantic_eval.py, benchmark/acoustic_eval.py",
+      "source_limitations": "The zip's generation run has 20 custom prompts. Its C/R/H/I Likert judge is a custom rubric, not proven to be the exact GPTScore implementation in the paper."
+    }
+  ],
+  "strict_reproduction_note": "The supplied paper names metrics and dataset counts but does not fully specify all judge prompts, normalization details, model settings, and label transformations in the five-page version. Full numerical reproduction therefore requires the authors' exact protocol/code or a declared compatible protocol."
+}
