@@ -1,0 +1,21 @@
+{
+  "created_utc": "2026-10-30T00:46:17.621153+00:00",
+  "assistant_model": "Emotion Aware Voice Assistant configured backend (Groq GPT-OSS 120B; Groq Whisper large-v3-turbo for Spoken SQuAD audio)",
+  "task_sample_sizes": {
+    "triviaqa": 55,
+    "librisqa": 55,
+    "spoken_squad": 55,
+    "alpaca": 55
+  },
+  "asr_sample": {
+    "dataset": "LibriSpeech dev-clean, dev-other, test-clean, test-other",
+    "sample_size": 1000,
+    "per_split": 250,
+    "seed": 20261030,
+    "stt_provider_model": "Groq Whisper large-v3-turbo"
+  },
+  "task_sampling_rule": "Retain the original fixed-seed 25-case pilot and add 30 randomly sampled cases per dataset with seed = 20261030 + sum(ord(character) for character in task name).",
+  "public_repository_scope": "Aggregate reports, metric formulas, task summary, and the LibriSpeech aggregate summary are published. Full source datasets, source manifests, raw case-level JSONL, evaluation WAV files, and model weights are not included.",
+  "paper_baselines_rerun": false,
+  "metric_caveat": "SOVA-style task-family sample; not a full SOVA-Bench reproduction. Exact-match, token-F1, and ROUGE-L are lexical proxies. Published baseline values are references and were not rerun."
+}

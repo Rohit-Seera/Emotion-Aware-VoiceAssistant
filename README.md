@@ -1,26 +1,42 @@
-# Emotion Aware Voice Assistant
+# Emotion-Aware Voice Assistant
 
-This is the clean, runnable project copy. The original project is preserved separately as a backup. The browser demo, API backend, model configuration, evaluation scripts, selected datasets, and final result files are kept here; temporary caches and superseded benchmark outputs were removed.
+An emotion-aware voice assistant built around a FastAPI backend, speech processing, configurable LLM and TTS providers, emotion handling, and a browser-based demo.
 
-## Run the assistant on Windows
+## Run on Windows
 
-1. Install Python 3.13 and make sure internet access is available for dependency setup and configured speech/LLM providers.
-2. Check that the local `.env` has valid provider credentials. Do not share or commit that file; `.env.example` is the safe template.
-3. Double-click `START_EMOTION_AWARE_VOICE_ASSISTANT.bat`. It checks the dependencies, starts the backend in a minimized terminal, waits for the API to be ready, and opens the demo browser tab.
-4. If needed, open `http://127.0.0.1:8000/api/v1/demo?visual=particles` manually. The server terminal remains minimized while the demo runs.
+1. Install Python 3.13 and Git.
+2. Copy .env.example to .env and add your own provider credentials. Keep .env private.
+3. Run START_EMOTION_AWARE_VOICE_ASSISTANT.bat from the project folder.
+4. When the server is ready, open http://127.0.0.1:8000/api/v1/demo?visual=particles if the browser does not open automatically.
 
-## Supervisor evaluation files
+Provider-backed features require valid local credentials and the relevant provider services. Never commit .env or paste API keys into source files.
 
-Open `SOVA_Evaluation/README.md` first. The final measured results and auditable calculation files are in `SOVA_Evaluation/outputs/`; evaluation code is in `SOVA_Evaluation/code/`. The package reports 1,000 LibriSpeech ASR utterances plus 55 cases from each of four task datasets. These are fixed-seed samples, not a full SOVA-Bench reproduction. Published baseline rows are paper references, not locally rerun models. The report lists all unmeasured metrics and protocol differences.
+## Evaluation results
 
-## Important project files
+The evaluation package reports 1,220 cases across five task families:
 
-- `app/` — FastAPI backend, voice pipeline, providers, emotion handling, and browser UI.
-- `benchmark/` — SOVA-compatible adapter code; older generated outputs are kept out of this final copy to avoid mixing them with the final result set.
-- `tests/` — automated backend and evaluation tests.
-- `runtime_models/` — local model assets used by configured components.
-- `requirements.txt`, `pyproject.toml`, and `uv.lock` — Python dependencies and lock file.
-- `START_EMOTION_AWARE_VOICE_ASSISTANT.bat` — one-click Windows launcher.
-- `SOVA_Evaluation/` — final result tables, formulas, case-level outputs, manifests, and reproducibility code.
+| Task | Result |
+|---|---:|
+| LibriSpeech ASR | 3.55% corpus WER across 1,000 utterances |
+| TriviaQA | 35.58% mean token-F1; 0.00% exact-match proxy across 55 cases |
+| LibriSQA Part II | 74.55% accuracy across 55 cases; 78.85% among 52 valid options |
+| Spoken SQuAD | 25.54% mean token-F1; 0.00% exact-match proxy across 55 cases |
+| Alpaca | 20.93% ROUGE-L F1 and 26.66% token-F1 across 55 prompts |
 
-The complete LibriSpeech and Spoken SQuAD sources are linked from `SOVA_Evaluation/inputs/` to the preserved local dataset archive; the junction targets are recorded in that folder's README. No result in the report is described as model training: the assistant was evaluated through inference, and no fine-tuning run was performed.
+See SOVA_Evaluation/README.md and SOVA_Evaluation/outputs/SOVA_FINAL_RESULTS_AND_LIMITATIONS.md for detailed metrics, formulas, comparison references, and limitations.
+
+These are fixed-seed, limited samples, not a full SOVA-Bench reproduction. Published baseline values are references from the paper and were not rerun locally. Exact-match, token-F1, and ROUGE-L are lexical proxy metrics; they are not the paper's GPT-evaluator accuracy or GPTScore. IEMOCAP emotion accuracy, Common Voice age/gender metrics, and speech-generation quality metrics were not measured. No foundation-model fine-tuning is claimed.
+
+## Project structure
+
+- app/ — FastAPI backend, voice pipeline, providers, emotion handling, and browser demo.
+- benchmark/ — model adapters and benchmark utilities.
+- tests/ — automated tests.
+- docs/ — project and research documentation.
+- SOVA_Evaluation/ — evaluation code, aggregate results, formulas, and limitations.
+- START_EMOTION_AWARE_VOICE_ASSISTANT.bat — Windows launcher.
+- pyproject.toml and uv.lock — Python project dependencies.
+
+## Public repository scope
+
+Aggregate evaluation reports and summaries are included. Full source datasets, raw per-case transcripts, case-level JSONL outputs, evaluation audio, and model weights are not included in this public repository. The .env file is local configuration and must never be committed.

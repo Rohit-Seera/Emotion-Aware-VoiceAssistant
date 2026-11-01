@@ -1,0 +1,9 @@
+Model / source,Knowledge accuracy (%),LibriSpeech dev-clean WER (%),LibriSpeech dev-other WER (%),LibriSpeech test-clean WER (%),LibriSpeech test-other WER (%),LibriSQA accuracy (%),Spoken SQuAD accuracy (%),Emotion accuracy (%),Age accuracy (%),Gender accuracy (%),Generation consistency WER (%),Generation GPTScore,Generation UTMOSv2
+Mini-Omni (published SOVA Table 4),2.42,5.18,12.03,8.68,12.75,NR,NR,28.53,11.79,27.22,10.04,1.44,3.62
+Mini-Omni2 (published SOVA Table 4),0.37,7.54,11.58,3.99,13.44,NR,NR,24.52,16.05,16.73,25.92,1.68,3.66
+Moshi (published SOVA Table 4),4.00,NR,NR,NR,NR,NR,NR,NR,NR,NR,5.94,1.57,2.43
+LLaMA-Omni (published SOVA Table 4),24.91,>100,>100,>100,>100,50.67,43.07,37.74,19.43,78.41,4.71,3.28,3.61
+Freeze-Omni (published SOVA Table 4),27.27,3.29,7.40,3.24,7.68,NR,NR,38.31,17.80,39.13,10.96,3.20,3.46
+GLM-4-Voice (published SOVA Table 4),25.58,NR,NR,2.82,7.66,NR,NR,30.16,37.84,69.40,10.02,3.25,3.09
+Cascade (published SOVA Table 4),58.98,1.92,3.77,1.81,3.62,81.11,93.05,NR,NR,NR,NR,3.88,NR
+Emotion Aware Voice Assistant (local evaluation),0.00 exact-match proxy (n=55; answered=55),2.75 (n=250),4.79 (n=250),2.51 (n=250),4.52 (n=250),74.55 (n=55; valid options=52/55; conditioned=78.85%),0.00 exact-match proxy; token-F1=25.54 (n=55),NR (IEMOCAP unavailable),NR (not an assistant output),NR (not an assistant output),NR (speech output not evaluated),NR (paper evaluator not run),NR (audio metric not run)

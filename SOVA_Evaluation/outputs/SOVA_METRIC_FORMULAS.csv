@@ -1,0 +1,8 @@
+Metric,Calculation,Interpretation / caveat
+Corpus WER (%),100 * (substitutions + deletions + insertions) / total reference words,"Lower is better; corpus micro-average, calculated over 1,000 LibriSpeech utterances."
+TriviaQA exact-match proxy (%),100 * normalized exact matches / 55 selected questions,Does not use SOVA paper's GPT evaluator; failed backend calls count incorrect in denominator.
+LibriSQA accuracy (%),100 * correct selected options / 55 selected questions,Failed backend calls count incorrect; four-way multiple-choice; transcript comes from prior ASR sample.
+Spoken SQuAD exact-match proxy (%),100 * normalized exact matches / 55 selected audio questions,Does not use paper's GPT evaluator; failed backend calls count incorrect in denominator.
+Token F1 (%),100 * 2 * token_precision * token_recall / (token_precision + token_recall),Average over successful responses only; lexical overlap against provided reference answer(s).
+Alpaca ROUGE-L F1 (%),100 * LCS-based ROUGE-L F1 between generated output and reference,"Text-only lexical proxy; not GPTScore, consistency WER, or UTMOSv2."
+Answer coverage (%),100 * successful backend cases / selected case count,Reported separately from conditional response-quality metrics.
