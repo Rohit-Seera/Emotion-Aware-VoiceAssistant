@@ -15,9 +15,10 @@ An emotion-aware voice assistant built around a FastAPI backend, speech processi
 ## Run on Windows
 
 1. Install Python 3.13 and Git.
-2. Copy .env.example to .env and add your own provider credentials. Keep .env private.
-3. Run START_EMOTION_AWARE_VOICE_ASSISTANT.bat from the project folder.
-4. When the server is ready, open http://127.0.0.1:8000/api/v1/demo?visual=particles if the browser does not open automatically.
+2. Dependencies are declared in pyproject.toml and uv.lock. For manual setup, run uv sync --extra dev --locked from the project root. The BAT launcher installs dependencies automatically (using uv when available, otherwise pip).
+3. Copy .env.example to .env and add your own provider credentials. Keep .env private.
+4. Run START_EMOTION_AWARE_VOICE_ASSISTANT.bat from the project folder.
+5. When the server is ready, open http://127.0.0.1:8000/api/v1/demo?visual=particles if the browser does not open automatically.
 
 Provider-backed features require valid local credentials and the relevant provider services. Never commit .env or paste API keys into source files.
 
