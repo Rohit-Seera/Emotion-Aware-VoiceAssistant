@@ -1,5 +1,15 @@
 # Emotion-Aware Voice Assistant
 
+## Presentation and report
+
+- Editable report: project_materials/Emotional_Aware_Voice_Assistant_Report.docx
+- Readable report copy: project_materials/Emotional_Aware_Voice_Assistant_Report.pdf
+- Editable 9-slide PowerPoint: project_materials/Emotion_Aware_Voice_Assistant_Presentation.pptx
+- Explained workflow animation: project_materials/Assistant_Workflow_Animation.mp4
+- Canva editor deck (9 slides, includes the animated workflow): https://www.canva.com/d/_ZNOQGYHebgtdrv
+
+The report and slides summarize the saved pilot evaluation and state the protocol limits. Dataset materials are included only where redistribution is permitted; some source datasets, model weights, and large case-level artifacts remain local or linked as described in SOVA_Evaluation/README.md. Never commit .env or provider keys.
+
 An emotion-aware voice assistant built around a FastAPI backend, speech processing, configurable LLM and TTS providers, emotion handling, and a browser-based demo.
 
 ## Run on Windows
