@@ -4,9 +4,9 @@
 
 - Editable report: project_materials/Emotional_Aware_Voice_Assistant_Report.docx
 - Readable report copy: project_materials/Emotional_Aware_Voice_Assistant_Report.pdf
-- Editable 9-slide PowerPoint: project_materials/Emotion_Aware_Voice_Assistant_Presentation.pptx
+- Editable 10-slide PowerPoint: project_materials/Emotion_Aware_Voice_Assistant_Presentation.pptx
 - Explained workflow animation: project_materials/Assistant_Workflow_Animation.mp4
-- Canva editor deck (9 slides, includes the animated workflow): https://www.canva.com/d/_ZNOQGYHebgtdrv
+- Canva editor deck (10 slides, includes the animated workflow and all 30 references across two slides): https://www.canva.com/d/DL0sWmd_GlB-J7j
 
 The report and slides summarize the saved pilot evaluation and state the protocol limits. Dataset materials are included only where redistribution is permitted; some source datasets, model weights, and large case-level artifacts remain local or linked as described in SOVA_Evaluation/README.md. Never commit .env or provider keys.
 
